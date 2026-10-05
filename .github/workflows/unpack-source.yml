@@ -1,0 +1,60 @@
+name: Unpack source archives
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'source/SuccessoPlayer_Android_v3.3_FiltroAscoltate_Source.zip'
+      - 'downloads/SuccessoPlayer_Pacchetto_Completo_v21_FiltroAscoltate.zip'
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack Android source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .unpack-source
+          mkdir .unpack-source
+          unzip -q source/SuccessoPlayer_Android_v3.3_FiltroAscoltate_Source.zip -d .unpack-source
+          SETTINGS="$(find .unpack-source -name settings.gradle -type f -print -quit)"
+          test -n "$SETTINGS"
+          ROOT="$(dirname "$SETTINGS")"
+
+          rm -rf app gradle
+          cp -a "$ROOT/app" ./app
+          cp -a "$ROOT/gradle" ./gradle
+
+          for f in build.gradle gradle.properties settings.gradle VERSION.txt PACCHETTO_INFO.txt LEGGIMI.txt; do
+            if [ -f "$ROOT/$f" ]; then cp -f "$ROOT/$f" "./$f"; fi
+          done
+
+      - name: Unpack Windows builder helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p builder .unpack-builder
+          if [ -f downloads/SuccessoPlayer_Pacchetto_Completo_v21_FiltroAscoltate.zip ]; then
+            unzip -q -o downloads/SuccessoPlayer_Pacchetto_Completo_v21_FiltroAscoltate.zip -d .unpack-builder
+            find .unpack-builder -maxdepth 1 -type f \( -name '*.ps1' -o -name '*.bat' -o -name 'LEGGIMI*.txt' \) -exec cp -f {} builder/ \;
+          fi
+
+      - name: Commit unpacked project
+        shell: bash
+        run: |
+          rm -rf .unpack-source .unpack-builder
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app gradle builder build.gradle gradle.properties settings.gradle VERSION.txt PACCHETTO_INFO.txt LEGGIMI.txt
+          if git diff --cached --quiet; then
+            echo "No source changes to commit."
+          else
+            git commit -m "Publish Successo Player Android v3.3 source"
+            git push
+          fi
