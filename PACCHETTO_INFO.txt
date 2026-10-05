@@ -1,0 +1,11 @@
+Successo Player Android v3.3 - Filtro ascoltate
+
+- nuovo filtro indipendente per le puntate già ascoltate
+- pulsante ○ Ascoltate / ✓ Ascoltate
+- filtro ascoltate combinabile con Preferite e con la ricerca
+- Preferite + Ascoltate mostra soltanto le puntate che soddisfano entrambi i filtri
+- stato del filtro ascoltate memorizzato nelle preferenze
+- stabilità background v3.2 mantenuta
+- Shuffle, tema solare, popup astronomico, preferiti, ascoltate e notifiche mantenuti
+- applicationId: it.successoplayer.app
+- versionCode base: 3300

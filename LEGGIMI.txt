@@ -1,0 +1,39 @@
+SUCCESSO PLAYER ANDROID v1.0
+===========================
+
+App Android nativa dedicata a:
+"Successo - Storie e voci dal Novecento" (RaiPlay Sound)
+
+FUNZIONI
+- Catalogo RaiPlay Sound aggiornato online
+- Ricerca per titolo, descrizione e data
+- Player audio con servizio in primo piano, quindi continua anche a schermo spento
+- Play/pausa, precedente/successiva, -30 s / +30 s
+- Timeline cliccabile: tocca un punto e la riproduzione salta lì
+- Quando selezioni una nuova puntata il seek torna immediatamente a 0:00
+- Velocità 0,75x / 0,90x / 1x / 1,25x / 1,5x / 2x
+- Volume 0-100 con curva percettiva (la zona bassa resta realmente utilizzabile)
+- Download delle puntate nella cartella pubblica:
+  Download/Successo - Storie e voci dal Novecento
+- Risoluzione diretta degli URL audio pubblici esposti da RaiPlay Sound
+- Se lo streaming non viene accettato dal MediaPlayer Android, fallback automatico
+  a una copia temporanea nella cache dell'app
+- Controlli Play/Pausa anche dalla notifica Android
+
+REQUISITI
+Android 8.0 (API 26) o successivo.
+
+COME CREARE L'APK CON ANDROID STUDIO
+1. Installa Android Studio.
+2. File > Open e scegli la cartella SuccessoPlayer_Android_v1.0.
+3. Lascia completare il Gradle Sync e l'installazione dell'SDK 35 se richiesta.
+4. Build > Build App Bundle(s) / APK(s) > Build APK(s).
+5. L'APK debug viene creato normalmente in:
+   app/build/outputs/apk/debug/app-debug.apk
+
+NOTE
+- L'app non aggira login, DRM o controlli d'accesso: usa metadati e URL media
+  pubblicamente esposti dal frontend RaiPlay Sound.
+- I collegamenti interni di RaiPlay Sound possono cambiare in futuro.
+- La prima riproduzione di una puntata può richiedere qualche secondo mentre
+  viene risolto il collegamento audio.
