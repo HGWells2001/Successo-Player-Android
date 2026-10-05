@@ -1,22 +1,31 @@
-name: Unpack source archives
+name: Assemble and publish source
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'source/SuccessoPlayer_Android_v3.3_FiltroAscoltate_Source.zip'
-      - 'downloads/SuccessoPlayer_Pacchetto_Completo_v21_FiltroAscoltate.zip'
+      - 'source/READY'
 
 permissions:
   contents: write
 
 jobs:
-  unpack:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Unpack Android source
+      - name: Reassemble uploaded archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p source downloads
+          cat source/source.zip.b64.part* | base64 -d > source/SuccessoPlayer_Android_v3.3_FiltroAscoltate_Source.zip
+          cat source/package.zip.b64.part* | base64 -d > downloads/SuccessoPlayer_Pacchetto_Completo_v21_FiltroAscoltate.zip
+          unzip -tq source/SuccessoPlayer_Android_v3.3_FiltroAscoltate_Source.zip
+          unzip -tq downloads/SuccessoPlayer_Pacchetto_Completo_v21_FiltroAscoltate.zip
+
+      - name: Publish Android source tree
         shell: bash
         run: |
           set -euo pipefail
@@ -35,26 +44,31 @@ jobs:
             if [ -f "$ROOT/$f" ]; then cp -f "$ROOT/$f" "./$f"; fi
           done
 
-      - name: Unpack Windows builder helpers
+      - name: Publish Windows builder helpers
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p builder .unpack-builder
-          if [ -f downloads/SuccessoPlayer_Pacchetto_Completo_v21_FiltroAscoltate.zip ]; then
-            unzip -q -o downloads/SuccessoPlayer_Pacchetto_Completo_v21_FiltroAscoltate.zip -d .unpack-builder
-            find .unpack-builder -maxdepth 1 -type f \( -name '*.ps1' -o -name '*.bat' -o -name 'LEGGIMI*.txt' \) -exec cp -f {} builder/ \;
-          fi
+          rm -rf .unpack-builder
+          mkdir .unpack-builder builder
+          unzip -q -o downloads/SuccessoPlayer_Pacchetto_Completo_v21_FiltroAscoltate.zip -d .unpack-builder
+          find .unpack-builder -maxdepth 1 -type f \( -name '*.ps1' -o -name '*.bat' -o -name 'LEGGIMI*.txt' \) -exec cp -f {} builder/ \;
 
-      - name: Commit unpacked project
+      - name: Clean temporary upload chunks
         shell: bash
         run: |
           rm -rf .unpack-source .unpack-builder
+          rm -f source/source.zip.b64.part* source/package.zip.b64.part* source/READY
+
+      - name: Commit published project
+        shell: bash
+        run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app gradle builder build.gradle gradle.properties settings.gradle VERSION.txt PACCHETTO_INFO.txt LEGGIMI.txt
+          git add -A
           if git diff --cached --quiet; then
-            echo "No source changes to commit."
+            echo "Nothing to publish."
           else
-            git commit -m "Publish Successo Player Android v3.3 source"
+            git commit -m "Publish Successo Player Android v3.3"
             git push
           fi
