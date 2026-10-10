@@ -34,8 +34,13 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Locate Android SDK
+        shell: bash
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          which sdkmanager
+          sdkmanager --version
 
       - name: Accept Android SDK licenses
         shell: bash
@@ -45,7 +50,6 @@ jobs:
         shell: bash
         run: |
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-          sdkmanager --list_installed
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
@@ -54,8 +58,7 @@ jobs:
 
       - name: Show project version
         shell: bash
-        run: |
-          grep -n "versionCode\|versionName" app/build.gradle
+        run: grep -n "versionCode\|versionName" app/build.gradle
 
       - name: Build debug APK
         shell: bash
