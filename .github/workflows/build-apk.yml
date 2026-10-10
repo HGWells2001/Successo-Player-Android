@@ -1,4 +1,5 @@
 name: Build Successo Player APK
+# Rebuild trigger for v3.5
 
 on:
   push:
