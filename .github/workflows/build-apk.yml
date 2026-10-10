@@ -2,49 +2,81 @@ name: Build Successo Player APK
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - "app/**"
+      - "build.gradle"
+      - "settings.gradle"
+      - ".github/workflows/build-apk.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: successo-player-apk-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  build-apk:
+    name: Build Android APK v3.5
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    timeout-minutes: 20
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Accept Android SDK licenses
+        shell: bash
+        run: yes | sdkmanager --licenses >/dev/null || true
+
       - name: Install Android SDK 35
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+        shell: bash
+        run: |
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager --list_installed
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: "8.9"
+
+      - name: Show project version
+        shell: bash
+        run: |
+          grep -n "versionCode\|versionName" app/build.gradle
 
       - name: Build debug APK
-        run: gradle --no-daemon :app:assembleDebug --stacktrace
+        shell: bash
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
 
-      - name: Rename APK
+      - name: Prepare APK artifact
+        shell: bash
         run: |
+          test -f app/build/outputs/apk/debug/app-debug.apk
           mkdir -p release
           cp app/build/outputs/apk/debug/app-debug.apk release/SuccessoPlayer_Android_v3.5_build3500.apk
+          sha256sum release/SuccessoPlayer_Android_v3.5_build3500.apk | tee release/SHA256.txt
+          ls -lh release/
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SuccessoPlayer-Android-v3.5-APK
-          path: release/SuccessoPlayer_Android_v3.5_build3500.apk
+          path: |
+            release/SuccessoPlayer_Android_v3.5_build3500.apk
+            release/SHA256.txt
           if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
