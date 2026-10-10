@@ -1,11 +1,13 @@
-Successo Player Android v3.3 - Filtro ascoltate
+Successo Player Android v3.5 - Player schermata di blocco
 
-- nuovo filtro indipendente per le puntate già ascoltate
-- pulsante ○ Ascoltate / ✓ Ascoltate
-- filtro ascoltate combinabile con Preferite e con la ricerca
-- Preferite + Ascoltate mostra soltanto le puntate che soddisfano entrambi i filtri
-- stato del filtro ascoltate memorizzato nelle preferenze
-- stabilità background v3.2 mantenuta
-- Shuffle, tema solare, popup astronomico, preferiti, ascoltate e notifiche mantenuti
-- applicationId: it.successoplayer.app
-- versionCode base: 3300
+- aggiunta MediaSession Android reale per i controlli multimediali di sistema
+- player visibile nella schermata di blocco quando una puntata è attiva
+- metadati: titolo puntata, nome programma e artwork Successo
+- controlli lockscreen: precedente, play/pausa, successiva e stop
+- barra/posizione sincronizzata con la riproduzione tramite PlaybackState
+- comandi compatibili anche con cuffie/Bluetooth e controlli multimediali di Android
+- notifica media PUBLIC e CATEGORY_TRANSPORT
+- foreground service mediaPlayback mantenuto anche con Activity in background
+- tutte le funzioni v3.4 mantenute: Non ascoltate, Preferite, Shuffle, stabilità background, tema solare, popup e notifiche nuove puntate
+- applicationId invariato: it.successoplayer.app
+- versionCode base 3500

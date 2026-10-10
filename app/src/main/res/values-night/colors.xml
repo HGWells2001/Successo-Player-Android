@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notte: stessi colori, portati verso verde bosco/legno scuro -->
+    <color name="bg">#142019</color>
+    <color name="panel">#203128</color>
+    <color name="panel2">#2C4436</color>
+
+    <color name="header">#355642</color>
+    <color name="headerDark">#263D30</color>
+    <color name="headerText">#FFF1DD</color>
+
+    <color name="textPrimary">#FFF4E5</color>
+    <color name="textSecondary">#D4C0AA</color>
+    <color name="textHint">#A99580</color>
+
+    <color name="accent">#D58A4E</color>
+    <color name="accentDark">#A45F35</color>
+    <color name="favorite">#E6B26C</color>
+
+    <color name="divider">#496252</color>
+    <color name="buttonPressed">#3B5A47</color>
+    <color name="listSelector">#35D58A4E</color>
+    <color name="progressTrack">#3B5042</color>
+</resources>

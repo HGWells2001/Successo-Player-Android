@@ -1,0 +1,34 @@
+﻿SUCCESSO PLAYER v3.5 - PLAYER SCHERMATA DI BLOCCO
+
+NOVITÀ
+Successo Player ora pubblica una vera MediaSession Android. Quando una
+puntata è in riproduzione o in pausa, Android può mostrare il player
+multimediale nella schermata di blocco e nel pannello dei controlli media.
+
+CONTROLLI DISPONIBILI
+- puntata precedente
+- play / pausa
+- puntata successiva
+- stop
+- seek/posizione tramite i controlli di sistema compatibili
+
+METADATI
+- titolo della puntata
+- Successo · Storie e voci dal Novecento
+- artwork dell'app
+
+EXTRA
+La MediaSession gestisce anche i comandi multimediali provenienti da
+cuffie, auricolari Bluetooth, auto e altri controller Android compatibili.
+
+SE IL PLAYER NON COMPARE ANCORA
+Controlla nelle impostazioni Android che Successo Player possa mostrare
+notifiche sulla schermata di blocco e che i contenuti delle notifiche
+multimediali non siano nascosti dal sistema.
+
+COMPILAZIONE
+Avvia:
+    COMPILA_SUCCESSO_PLAYER_v23.bat
+
+APK previsto:
+    SuccessoPlayer_Android_v3.5_build3500.apk

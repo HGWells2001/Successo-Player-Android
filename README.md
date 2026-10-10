@@ -4,63 +4,54 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v3.4 – Filtro puntate non ascoltate**
+**v3.5 – Controlli multimediali su schermata di blocco**
 
-## Funzioni principali
+## Novità della v3.5
+
+- vera **MediaSession Android** per i controlli multimediali di sistema;
+- player visibile sulla **schermata di blocco** durante la riproduzione;
+- controlli **precedente, play/pausa, successiva e stop** dalla notifica multimediale;
+- titolo della puntata e artwork pubblicati al sistema;
+- posizione di riproduzione sincronizzata con i controlli Android;
+- supporto migliorato per cuffie, Bluetooth e dispositivi compatibili;
+- servizio audio foreground mantenuto anche quando l'interfaccia è in background.
+
+## Funzioni
 
 - catalogo delle puntate da RaiPlay Sound;
 - riproduzione audio in foreground e background;
 - ripristino della sessione quando si passa ad altre app;
 - download delle puntate con indicatore di avanzamento;
 - preferiti ★;
-- indicatore **✓ Ascoltata** sulle puntate già completate;
+- indicatore **✓ Ascoltata** sulle puntate completate;
 - filtro **Non ascoltate** per mostrare soltanto le puntate ancora da ascoltare;
-- filtro **Preferite**, filtro **Non ascoltate** e ricerca combinabili tra loro;
+- filtro **Preferite**, filtro **Non ascoltate** e ricerca combinabili;
 - modalità **Shuffle** con riproduzione casuale continua;
-- riproduzione automatica della puntata successiva quando Shuffle è disattivato;
+- riproduzione automatica della puntata successiva con Shuffle disattivato;
 - notifica delle nuove puntate;
 - popup giornaliero con alba, tramonto e fase lunare a Saxa Rubra;
-- tema automatico giorno/notte basato sugli orari di alba e tramonto;
-- palette grafica ispirata al programma;
-- sistema di build Windows con firma persistente e versionCode crescente.
+- tema automatico giorno/notte basato su alba e tramonto;
+- palette grafica ispirata al programma.
 
-## Filtro Non ascoltate
+## Build su Windows
 
-Il pulsante:
+Nella cartella [`windows-builder`](windows-builder) sono inclusi gli script di build automatica.
 
-```text
-○ Non ascoltate
-```
-
-quando viene attivato diventa:
+Avvia:
 
 ```text
-✓ Non ascoltate
+COMPILA_SUCCESSO_PLAYER_v23.bat
 ```
 
-e mostra esclusivamente le puntate che non risultano ancora ascoltate.
-
-Può essere combinato con **Preferite** e con la ricerca. Ad esempio, **Preferite + Non ascoltate** mostra direttamente le puntate preferite ancora da ascoltare.
-
-## Build
-
-Il progetto richiede Java 17, Gradle 8.9 e Android SDK 35.
-
-Per la build automatica su Windows avvia:
-
-```text
-COMPILA_SUCCESSO_PLAYER_v22.bat
-```
-
-Il builder può predisporre automaticamente Java 17, Gradle e Android SDK quando non sono già disponibili.
+Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di firma persistente per gli aggiornamenti.
 
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `3.4`
-- Version code base: `3400`
-- Sorgente: `SuccessoPlayer_Android_v3.4_FiltroNonAscoltate_Source.zip`
-- Pacchetto completo: `SuccessoPlayer_Pacchetto_Completo_v22_FiltroNonAscoltate.zip`
+- Versione: `3.5`
+- Version code base: `3500`
+
+I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 
 ## Nota
 

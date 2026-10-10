@@ -1,25 +1,16 @@
 # Android / Gradle
 .gradle/
-build/
 **/build/
 local.properties
-.externalNativeBuild/
-.cxx/
-
-# IDE
-.idea/
 *.iml
+.idea/
 
-# Signing / secrets
-*.jks
-*.keystore
-key.properties
-
-# OS
+# OS / editor
 .DS_Store
 Thumbs.db
+.vscode/
 
-# Builder scratch
-.successo-build-tools/
-build_successo_*.log
-_successo_*.cmd
+# Signing / generated packages
+*.keystore
+*.jks
+*.apk

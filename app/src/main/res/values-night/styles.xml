@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:statusBarColor">@color/headerDark</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <style name="ControlButton">
+        <item name="android:textColor">@color/textPrimary</item>
+        <item name="android:background">@drawable/button_bg</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
+    </style>
+
+    <style name="HeaderButton">
+        <item name="android:textColor">@color/headerText</item>
+        <item name="android:background">@drawable/header_button_bg</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
+    </style>
+
+    <style name="AccentButton">
+        <item name="android:textColor">@color/headerText</item>
+        <item name="android:background">@drawable/accent_button_bg</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
+    </style>
+</resources>
