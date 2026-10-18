@@ -23,44 +23,7 @@ if (-not $keytool) {
     # senza aggiungerlo permanentemente al PATH del sistema.
     $jdkDir = Join-Path $PSScriptRoot ".successo-build-tools\jdk17"
     $found = Get-ChildItem $jdkDir -Recurse -Filter keytool.exe -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -match '\\bin\\keytool\.exe
-
-# Il builder Windows utilizza la chiave debug persistente, alias e password noti.
-# La sicurezza della firma dipende dalla RISERVATEZZA del file keystore.
-$alias = "androiddebugkey"
-$password = "android"
-$info = (& $keytool.Source -list -v -keystore $keystore -storepass $password -alias $alias 2>&1) -join "`n"
-if ($LASTEXITCODE -ne 0) { throw "Impossibile leggere la chiave dal keystore: verifica il builder Windows." }
-$match = [regex]::Match($info, 'SHA256:\s*([0-9A-Fa-f:]{59,95})')
-if (-not $match.Success) { throw "Impossibile leggere l'impronta del certificato SHA256 da keytool." }
-$fingerprint = $match.Groups[1].Value.Replace(":", "").ToLowerInvariant()
-$encodedKey = [Convert]::ToBase64String([IO.File]::ReadAllBytes($keystore))
-
-# GitHub CLI cifra localmente i secrets prima dell'invio.
-& $gh.Source auth status
-if ($LASTEXITCODE -ne 0) { throw "Accedi a GitHub con 'gh auth login' e riprova." }
-
-$temp = Join-Path $env:TEMP ("successo-signing-" + [guid]::NewGuid().ToString("N") + ".env")
-try {
-    $lines = @(
-        "SUCCESSO_KEYSTORE_BASE64=$encodedKey",
-        "SUCCESSO_KEYSTORE_PASSWORD=$password",
-        "SUCCESSO_KEY_ALIAS=$alias",
-        "SUCCESSO_KEY_PASSWORD=$password",
-        "SUCCESSO_CERT_SHA256=$fingerprint"
-    )
-    [IO.File]::WriteAllLines($temp, $lines, [Text.UTF8Encoding]::new($false))
-    & $gh.Source secret set -R $Repository -f $temp
-    if ($LASTEXITCODE -ne 0) { throw "Il caricamento dei GitHub Secrets non e' riuscito." }
-} finally {
-    Remove-Item $temp -Force -ErrorAction SilentlyContinue
-}
-
-Write-Host "Firma permanente configurata correttamente su GitHub." -ForegroundColor Green
-Write-Host "Impronta SHA256: $fingerprint"
-Write-Host "Il backup fondamentale e': $keystore" -ForegroundColor Yellow
-Write-Host "Esegui la build firmata in GitHub Actions: https://github.com/$Repository/actions/workflows/build-apk.yml"
- } |
+        Where-Object { $_.FullName -like '*\bin\keytool.exe' } |
         Select-Object -First 1
     if ($found) { $keytool = $found }
 }
@@ -76,7 +39,7 @@ if (-not $keytool) {
 # La sicurezza della firma dipende dalla RISERVATEZZA del file keystore.
 $alias = "androiddebugkey"
 $password = "android"
-$info = (& $keytool.Source -list -v -keystore $keystore -storepass $password -alias $alias 2>&1) -join "\`n"
+$info = (& $keytool.Source -list -v -keystore $keystore -storepass $password -alias $alias 2>&1) -join "`n"
 if ($LASTEXITCODE -ne 0) { throw "Impossibile leggere la chiave dal keystore: verifica il builder Windows." }
 $match = [regex]::Match($info, 'SHA256:\s*([0-9A-Fa-f:]{59,95})')
 if (-not $match.Success) { throw "Impossibile leggere l'impronta del certificato SHA256 da keytool." }
