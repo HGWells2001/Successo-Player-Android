@@ -320,13 +320,14 @@
                 android:text="Scarica puntata" />
 
             <Button
-                android:id="@+id/openRaiButton"
+                android:id="@+id/openDownloadsButton"
                 style="@style/ControlButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginLeft="7dp"
-                android:text="Apri su RaiPlay" />
+                android:text="📂 Apri download"
+                android:contentDescription="Apri la cartella delle puntate scaricate" />
         </LinearLayout>
 
         <TextView

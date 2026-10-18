@@ -108,9 +108,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # Il codice 4400 e' riservato alla v4.4: tutte le build online sono successive.
-          code = 4400 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 4300 and code < 2100000000
+          # Il codice 4500 e' riservato alla v4.5: tutte le build online sono successive.
+          code = 4500 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 4400 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
@@ -139,6 +139,10 @@ jobs:
       - name: Verifica rimozione pulsanti intestazione
         shell: bash
         run: python3 tools/check_header_buttons_removed.py
+
+      - name: Verifica pulsante cartella download
+        shell: bash
+        run: python3 tools/check_download_folder_button.py
 
       - name: Compila release (non firmata)
         shell: bash

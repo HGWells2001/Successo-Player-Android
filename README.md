@@ -4,7 +4,14 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.4 – Intestazione senza pulsanti superflui**
+**v4.5 – Pulsante cartella delle puntate scaricate**
+
+## Novità della v4.5
+
+- Sostituito il pulsante **Apri su RaiPlay** con **📂 Apri download**.
+- Il pulsante apre la cartella pubblica `Download/Successo - Storie e voci dal Novecento`, dove l'app salva le puntate.
+- Compatibilità con gestori file Android che supportano l'apertura diretta delle cartelle tramite `DocumentsContract`; in alternativa, apre il selettore file nella cartella indicata o la schermata Download.
+- Nessun cambio della posizione dei download, delle autorizzazioni dell'app o della firma dell'APK.
 
 ## Novità della v4.4
 
@@ -113,8 +120,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.4`
-- Version code base: `4400`
+- Versione: `4.5`
+- Version code base: `4500`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

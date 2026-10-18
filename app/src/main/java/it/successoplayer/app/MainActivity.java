@@ -26,6 +26,7 @@ import android.os.IBinder;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.provider.DocumentsContract;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -54,6 +55,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private static final int REQ_NOTIFICATIONS = 901;
     private static final int REQ_STORAGE = 902;
 
+    // Cartella pubblica utilizzata dal DownloadManager per le puntate.
+    private static final String EPISODE_DOWNLOAD_FOLDER = "Successo - Storie e voci dal Novecento";
     private static final long CATALOG_CACHE_MS = 10L * 60L * 1000L;
     private static final Object CATALOG_CACHE_LOCK = new Object();
     private static RaiClient.Catalog cachedCatalog;
@@ -113,7 +116,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openRaiButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private Switch liveAutoSwitch;
     private TextView liveScheduleHint;
@@ -719,7 +722,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         rewindButton = findViewById(R.id.rewindButton);
         forwardButton = findViewById(R.id.forwardButton);
         downloadButton = findViewById(R.id.downloadButton);
-        openRaiButton = findViewById(R.id.openRaiButton);
+        openDownloadsButton = findViewById(R.id.openDownloadsButton);
         favoritesFilterButton = findViewById(R.id.favoritesFilterButton);
         unlistenedFilterButton = findViewById(R.id.unlistenedFilterButton);
         speedSpinner = findViewById(R.id.speedSpinner);
@@ -916,11 +919,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         });
 
         downloadButton.setOnClickListener(v -> startDownload(selectedEpisode));
-        openRaiButton.setOnClickListener(v -> {
-            String url = selectedEpisode != null && selectedEpisode.webUrl != null && !selectedEpisode.webUrl.isEmpty()
-                    ? selectedEpisode.webUrl : RaiClient.PROGRAM_WEB;
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-        });
+        openDownloadsButton.setOnClickListener(v -> openEpisodeDownloads());
     }
 
     private void loadCatalog(boolean forceNetwork) {
@@ -1261,6 +1260,51 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         return v[Math.max(0, Math.min(v.length - 1, p))];
     }
 
+
+    /**
+     * Mostra la sottocartella pubblica in cui il DownloadManager salva
+     * le puntate. Usa solo intent standard e nessun permesso globale ai file.
+     */
+    private void openEpisodeDownloads() {
+        String folderId = "primary:" + Environment.DIRECTORY_DOWNLOADS
+                + "/" + EPISODE_DOWNLOAD_FOLDER;
+        Uri folderUri = DocumentsContract.buildDocumentUri(
+                "com.android.externalstorage.documents", folderId);
+
+        // Alcuni gestori file, incluso DocumentsUI su vari dispositivi,
+        // aprono direttamente un documento di tipo directory.
+        Intent directory = new Intent(Intent.ACTION_VIEW);
+        directory.setDataAndType(
+                folderUri, DocumentsContract.Document.MIME_TYPE_DIR);
+        directory.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            startActivity(directory);
+            return;
+        } catch (RuntimeException unsupported) {
+            // Nessun gestore compatibile, oppure il provider nega l'apertura.
+        }
+
+        // Fallback ufficiale: selettore Android che parte dalla cartella
+        // desiderata (EXTRA_INITIAL_URI puo' essere ignorato dal produttore).
+        Intent browse = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        browse.addCategory(Intent.CATEGORY_OPENABLE);
+        browse.setType("*/*");
+        browse.putExtra(DocumentsContract.EXTRA_INITIAL_URI, folderUri);
+        try {
+            startActivity(browse);
+            return;
+        } catch (RuntimeException unsupported) {
+            // Il dispositivo non espone neanche il selettore documenti.
+        }
+
+        // Ultima risorsa: l'interfaccia download del dispositivo.
+        try {
+            startActivity(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
+        } catch (RuntimeException missing) {
+            toast("Apri File > Download > " + EPISODE_DOWNLOAD_FOLDER);
+        }
+    }
+
     private void startDownload(Episode ep) {
         if (ep == null) {
             toast("Seleziona prima una puntata.");
@@ -1285,7 +1329,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                 req.setAllowedOverMetered(true);
                 req.setAllowedOverRoaming(false);
                 req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
-                        "Successo - Storie e voci dal Novecento/" + filename);
+                        EPISODE_DOWNLOAD_FOLDER + "/" + filename);
                 DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                 long downloadId = dm.enqueue(req);
                 postUi(() -> beginDownloadProgress(dm, downloadId));
@@ -1310,7 +1354,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         downloadProgress.setVisibility(View.VISIBLE);
         downloadProgressText.setText("Download in preparazione…");
         downloadProgressText.setVisibility(View.VISIBLE);
-        setStatus("Download avviato · cartella Download/Successo - Storie e voci dal Novecento", false);
+        setStatus("Download avviato · cartella Download/" + EPISODE_DOWNLOAD_FOLDER, false);
         downloadHandler.removeCallbacks(downloadProgressPoller);
         downloadHandler.post(downloadProgressPoller);
     }
