@@ -19,7 +19,6 @@ import android.os.PowerManager;
 
 public final class LiveRadioService extends Service {
     public static final String ACTION_START_AUTO = "it.successoplayer.app.LIVE_AUTO";
-    public static final String ACTION_START_MANUAL = "it.successoplayer.app.LIVE_MANUAL";
     public static final String ACTION_STOP = "it.successoplayer.app.LIVE_STOP";
     private static final String STREAM = "https://icestreaming.rai.it/1.mp3";
     private static final String CHANNEL = "successo_radio1_live";
@@ -61,21 +60,24 @@ public final class LiveRadioService extends Service {
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent == null ? "" : intent.getAction();
         if (ACTION_STOP.equals(action)) {
+            // La notifica spegne anche l'interruttore e i prossimi allarmi.
+            getSharedPreferences(LiveRadioScheduler.PREFS, MODE_PRIVATE)
+                    .edit().putBoolean(LiveRadioScheduler.PREF_ENABLED, false).apply();
+            LiveRadioScheduler.cancel(this);
             shutdown();
             return START_NOT_STICKY;
         }
-        boolean auto = ACTION_START_AUTO.equals(action);
-        if (!auto && !ACTION_START_MANUAL.equals(action)) {
+        if (!ACTION_START_AUTO.equals(action)) {
             stopSelfResult(startId);
             return START_NOT_STICKY;
         }
-        if (auto && (!LiveRadioScheduler.enabled(this)
-                || !LiveRadioScheduler.inBroadcastWindow())) {
+        if (!LiveRadioScheduler.enabled(this)
+                || !LiveRadioScheduler.inBroadcastWindow()) {
             shutdown();
             return START_NOT_STICKY;
         }
         if (active) return START_NOT_STICKY;
-        playingAuto = auto;
+        playingAuto = true;
         active = true;
         attempts = 0;
 

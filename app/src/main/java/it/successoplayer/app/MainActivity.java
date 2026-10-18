@@ -120,7 +120,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private Spinner speedSpinner;
     private Switch liveAutoSwitch;
     private TextView liveScheduleHint;
-    private Button liveListenButton, liveStopButton;
+    private boolean syncingLiveSwitch;
     private ProgressBar loadingProgress, downloadProgress;
     private TextView downloadProgressText;
     private final Handler downloadHandler = new Handler(Looper.getMainLooper());
@@ -731,14 +731,14 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         downloadProgressText = findViewById(R.id.downloadProgressText);
         liveAutoSwitch = findViewById(R.id.liveAutoSwitch);
         liveScheduleHint = findViewById(R.id.liveScheduleHint);
-        liveListenButton = findViewById(R.id.liveListenButton);
-        liveStopButton = findViewById(R.id.liveStopButton);
     }
 
     private void configureUi() {
         liveAutoSwitch.setChecked(LiveRadioScheduler.enabled(this));
         updateLiveRadioHint();
         liveAutoSwitch.setOnCheckedChangeListener((button, enabled) -> {
+            if (syncingLiveSwitch) return;
+            // OFF arresta subito; ON durante la trasmissione riparte subito.
             LiveRadioScheduler.setEnabled(this, enabled);
             updateLiveRadioHint();
             if (enabled && !LiveRadioScheduler.canSchedulePrecisely(this)) {
@@ -761,22 +761,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                         .show();
             }
         });
-        liveListenButton.setOnClickListener(v -> {
-            try {
-                Intent play = new Intent(this, LiveRadioService.class)
-                        .setAction(LiveRadioService.ACTION_START_MANUAL);
-                if (Build.VERSION.SDK_INT >= 26) startForegroundService(play);
-                else startService(play);
-                toast("Connessione alla diretta Rai Radio 1…");
-            } catch (Exception e) {
-                toast("Impossibile avviare la diretta. Controlla la connessione.");
-            }
-        });
-        liveStopButton.setOnClickListener(v -> {
-            stopService(new Intent(this, LiveRadioService.class));
-            toast("Diretta interrotta.");
-        });
-
         adapter = new EpisodeAdapter(this, new EpisodeAdapter.FavoriteHandler() {
             @Override public boolean isFavorite(Episode episode) {
                 return MainActivity.this.isFavorite(episode);
@@ -1430,12 +1414,16 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
     private void updateLiveRadioHint() {
         if (liveScheduleHint == null) return;
-        if (!LiveRadioScheduler.enabled(this)) {
-            liveScheduleHint.setText("Diretta automatica disattivata · orario italiano.");
-        } else if (LiveRadioScheduler.canSchedulePrecisely(this)) {
-            liveScheduleHint.setText("Attiva · lun–ven, dalle 05:35 alle 06:00 (ora italiana).");
+        if (LiveRadioScheduler.inBroadcastWindow()) {
+            liveScheduleHint.setText(LiveRadioScheduler.enabled(this)
+                    ? "In diretta · 05:35–06:00"
+                    : "Diretta fermata · attiva per riprendere");
+        } else if (LiveRadioScheduler.enabled(this)) {
+            liveScheduleHint.setText(LiveRadioScheduler.canSchedulePrecisely(this)
+                    ? "Lun–ven 05:35–06:00 · attiva"
+                    : "⚠ Consenti sveglie esatte");
         } else {
-            liveScheduleHint.setText("⚠ Autorizza 'Sveglie e promemoria' per la puntualità.");
+            liveScheduleHint.setText("Lun–ven 05:35–06:00");
         }
     }
 
@@ -1558,6 +1546,12 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     protected void onResume() {
         super.onResume();
         LiveRadioScheduler.schedule(this);
+        // Rispetta eventuale arresto dalla notifica senza una nuova attivazione.
+        if (liveAutoSwitch != null) {
+            syncingLiveSwitch = true;
+            liveAutoSwitch.setChecked(LiveRadioScheduler.enabled(this));
+            syncingLiveSwitch = false;
+        }
         updateLiveRadioHint();
 
         themeHandler.removeCallbacks(themeCheckRunnable);

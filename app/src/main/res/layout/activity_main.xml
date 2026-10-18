@@ -45,55 +45,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:background="@drawable/panel_bg"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        android:padding="9dp">
-
-        <Switch
-            android:id="@+id/liveAutoSwitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🔴 Diretta automatica · lun–ven 05:35–06:00"
-            android:textColor="@color/textPrimary"
-            android:textSize="13sp"
-            android:contentDescription="Attiva ascolto automatico di Rai Radio 1 nei giorni feriali" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <Button
-                android:id="@+id/liveListenButton"
-                style="@style/ControlButton"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="42dp"
-                android:text="▶ Rai Radio 1 ora"
-                android:textSize="12sp" />
-            <Button
-                android:id="@+id/liveStopButton"
-                style="@style/ControlButton"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:layout_marginLeft="6dp"
-                android:text="■ Ferma"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/liveScheduleHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/textSecondary"
-            android:textSize="11sp"
-            android:text="Orario italiano. Richiede Internet e permesso sveglie esatte." />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
@@ -309,25 +260,60 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <Button
                 android:id="@+id/downloadButton"
                 style="@style/AccentButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Scarica puntata" />
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:text="⬇"
+                android:textSize="22sp"
+                android:contentDescription="Scarica puntata selezionata" />
 
             <Button
                 android:id="@+id/openDownloadsButton"
                 style="@style/ControlButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:layout_marginLeft="7dp"
+                android:text="📂"
+                android:textSize="21sp"
+                android:contentDescription="Apri la cartella delle puntate scaricate" />
+
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginLeft="7dp"
-                android:text="📂 Apri download"
-                android:contentDescription="Apri la cartella delle puntate scaricate" />
+                android:layout_marginLeft="10dp"
+                android:orientation="vertical">
+
+                <Switch
+                    android:id="@+id/liveAutoSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="44dp"
+                    android:gravity="center_vertical"
+                    android:text="Diretta programma"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="13sp"
+                    android:contentDescription="Attiva o ferma la diretta del programma e la programmazione automatica" />
+
+                <TextView
+                    android:id="@+id/liveScheduleHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="10sp"
+                    android:text="Lun–ven 05:35–06:00" />
+            </LinearLayout>
         </LinearLayout>
 
         <TextView

@@ -4,7 +4,15 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.5 – Pulsante cartella delle puntate scaricate**
+**v4.6 – Pulsanti compatti e Diretta programma**
+
+## Novità della v4.6
+
+- Pulsanti **⬇ Scarica** e **📂 Cartella download** quadrati (48 × 48 dp), solo icona e accessibilita' tramite descrizione.
+- Switch **Diretta programma** sulla stessa riga. Rimossi i pulsanti “Rai Radio 1 ora” e “Ferma”.
+- Lunedi-venerdi, ore **05:35–06:00**: switch **OFF** interrompe subito la diretta e **ON** la riavvia subito in streaming, dal momento attuale.
+- Fuori fascia lo switch abilita/disabilita la prossima trasmissione automatica, senza avviare Rai Radio 1 a orari diversi.
+- Stop dalla notifica disattiva anche lo switch. Restano invariati tutti gli altri controlli del player e la firma APK.
 
 ## Novità della v4.5
 
@@ -120,8 +128,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.5`
-- Version code base: `4500`
+- Versione: `4.6`
+- Version code base: `4600`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

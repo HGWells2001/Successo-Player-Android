@@ -34,8 +34,20 @@ public final class LiveRadioScheduler {
                 .edit().putBoolean(PREF_ENABLED, enabled).apply();
         if (enabled) {
             schedule(context);
+            // Se attivato durante la diretta, avvia subito Rai Radio 1.
+            if (inBroadcastWindow()) {
+                Intent play = new Intent(context, LiveRadioService.class)
+                        .setAction(LiveRadioService.ACTION_START_AUTO);
+                try {
+                    if (Build.VERSION.SDK_INT >= 26) context.startForegroundService(play);
+                    else context.startService(play);
+                } catch (RuntimeException ignored) {
+                    // Il sistema potrebbe restringere l'avvio del servizio.
+                }
+            }
         } else {
             cancel(context);
+            // Spegnere lo switch termina immediatamente la diretta corrente.
             context.stopService(new Intent(context, LiveRadioService.class));
         }
     }
