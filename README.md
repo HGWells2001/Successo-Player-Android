@@ -4,9 +4,9 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v3.7 – 730 proverbi del giorno**
+**v3.8 – Aggiornamenti APK con firma persistente**
 
-## Novità della v3.7
+## Novità della v3.8
 
 - nuovo popup **📜 Il proverbio del giorno** dopo quello astronomico;
 - **730 proverbi italiani distinti** in una raccolta offline, uno diverso ogni giorno per 730 giorni consecutivi (due anni);
@@ -43,6 +43,18 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 I detti provengono dalla tradizione popolare italiana. La selezione è stata integrata e deduplicata a partire anche dalla [raccolta pubblica di proverbi italiani](https://github.com/regolimassimo/Proverbi/blob/master/app/src/main/assets/proverbi-IT.txt); le formule proverbiali sono di origine tradizionale.
 
+## Aggiornamenti senza disinstallazione
+
+Per sostituire un APK gia installato, Android richiede **lo stesso applicationId**, **lo stesso certificato di firma** e un **versionCode crescente**. I primi APK GitHub fino alla v3.7 erano compilati in debug su macchine temporanee, che cambiano la chiave a ogni build. La v3.8 corregge la compilazione GitHub: gli APK aggiornabili richiedono una firma permanente.
+
+**Configurazione una tantum, sul PC Windows usato per il builder:**
+1. Esegui `windows-builder/COMPILA_SUCCESSO_PLAYER_v24.bat` almeno una volta per creare o riutilizzare la chiave `%LOCALAPPDATA%\SuccessoPlayerBuild\successo_update.keystore`. Conservane un backup privato.
+2. Installa [GitHub CLI](https://cli.github.com/), poi autentica con `gh auth login`. Assicurati di avere Java 17 e `keytool.exe`.
+3. In PowerShell, nella cartella `windows-builder`, esegui `powershell -ExecutionPolicy Bypass -File .\CONFIGURA_FIRMA_GITHUB.ps1`.
+4. Avvia `build-apk.yml` da GitHub Actions. Da questo momento i successivi APK GitHub saranno firmati con **la stessa chiave**. La build rifiuta di pubblicare APK se la chiave o la sua impronta non coincidono con i secrets configurati.
+
+**Attenzione alla prima migrazione:** la v3.6 e la v3.7 distribuite da GitHub hanno certificati differenti. Android non consente di aggiornarle direttamente con un APK firmato da una terza chiave: potrebbe essere necessaria **un'ultima disinstallazione**, con possibile perdita dei dati locali. Dopo aver installato un APK della nuova serie firmato dalla chiave permanente, i successivi aggiornamenti dalla stessa serie non richiederanno disinstallazioni. Non eliminare mai la chiave `successo_update.keystore` e non caricarla pubblicamente su GitHub.
+
 ## Build su Windows
 
 Nella cartella [`windows-builder`](windows-builder) sono inclusi gli script di build automatica.
@@ -53,13 +65,13 @@ Avvia:
 COMPILA_SUCCESSO_PLAYER_v24.bat
 ```
 
-Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di firma persistente per gli aggiornamenti.
+Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di firma persistente per gli aggiornamenti. Per installazioni aggiornabili, usa lo **stesso certificato** su PC e in GitHub Actions.
 
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `3.7`
-- Version code base: `3700`
+- Versione: `3.8`
+- Version code base: `3800`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 
