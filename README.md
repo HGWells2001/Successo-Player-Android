@@ -4,11 +4,18 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.3 – Uscita completa e pulizia delle notifiche**
+**v4.4 – Intestazione senza pulsanti superflui**
+
+## Novità della v4.4
+
+- Rimossi **✕ Esci** e **↻ Aggiorna lista** dall'intestazione.
+- Il catalogo continua a caricarsi automaticamente quando si apre l'app, utilizzando la cache breve per non ripetere download inutili.
+- La chiusura completa è disponibile tramite **Indietro** o rimozione dalle app recenti; ferma puntate e diretta e pulisce le notifiche.
+- Restano invariati la diretta programmata, i filtri e i 2.253 proverbi offline.
 
 ## Novità della v4.3
 
-- **Uscita completa** tramite pulsante **✕ Esci** o tasto/gesto Indietro: termina le puntate, la radio in diretta e i servizi di riproduzione;
+- **Uscita completa** tramite tasto/gesto Indietro: termina le puntate, la radio in diretta e i servizi di riproduzione;
 - quando si rimuove Successo Player dalle **applicazioni recenti**, entrambi i servizi si arrestano anche a interfaccia già chiusa;
 - la chiusura elimina i controlli multimediali dalle **notifiche** e dalla **schermata di blocco** e cancella le notifiche residue dell'app;
 - la posizione della puntata viene salvata in pausa, ma non riparte senza una nuova pressione su **▶**;
@@ -106,8 +113,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.3`
-- Version code base: `4300`
+- Versione: `4.4`
+- Version code base: `4400`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

@@ -113,7 +113,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, refreshButton, exitButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openRaiButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openRaiButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private Switch liveAutoSwitch;
     private TextView liveScheduleHint;
@@ -713,8 +713,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         seekBar = findViewById(R.id.seekBar);
         volumeBar = findViewById(R.id.volumeBar);
         playButton = findViewById(R.id.playButton);
-        refreshButton = findViewById(R.id.refreshButton);
-        exitButton = findViewById(R.id.exitButton);
         previousButton = findViewById(R.id.previousButton);
         nextButton = findViewById(R.id.nextButton);
         shuffleButton = findViewById(R.id.shuffleButton);
@@ -827,8 +825,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             applyFilter();
         });
 
-        exitButton.setOnClickListener(v -> closeAppCompletely());
-        refreshButton.setOnClickListener(v -> loadCatalog(true));
         playButton.setOnClickListener(v -> {
             if (selectedEpisode == null) {
                 toast("Seleziona prima una puntata.");
@@ -929,7 +925,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
     private void loadCatalog(boolean forceNetwork) {
         setStatus("Aggiorno il catalogo RaiPlay Sound…", true);
-        refreshButton.setEnabled(false);
 
         if (!forceNetwork) {
             RaiClient.Catalog memoryCache = null;
@@ -966,7 +961,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             } catch (Exception e) {
                 postUi(() -> {
                     setStatus("Errore catalogo: " + message(e), false);
-                    refreshButton.setEnabled(true);
                 });
             }
         });
@@ -997,7 +991,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         synchronizePlaybackService();
 
         setStatus(status, false);
-        refreshButton.setEnabled(true);
     }
 
     private void applyFilter() {
@@ -1575,7 +1568,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     /**
-     * Una chiusura esplicita (Back o pulsante Esci) ferma subito entrambi i
+     * Una chiusura esplicita (tasto o gesto Indietro) ferma entrambi i
      * servizi. Il tasto Home e lo spegnimento dello schermo NON sono chiusure.
      */
     private void closeAppCompletely() {

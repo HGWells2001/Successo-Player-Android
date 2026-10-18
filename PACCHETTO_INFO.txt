@@ -24,3 +24,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v4.2: correzione pausa, nessuna ripartenza automatica al rientro; mantiene la posizione e gli aggiornamenti compatibili.
 
 - v4.3: uscita completa via Indietro/pulsante Esci/rimozione da Recenti, player/notifiche/lockscreen spenti e servizi fermati.
+
+- v4.4: rimossi pulsanti Esci e Aggiorna lista, aggiornamento catalogo automatico all'avvio, chiusura tramite Indietro/recenti.
