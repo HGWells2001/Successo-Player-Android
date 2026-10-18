@@ -36,7 +36,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Spinner;
-import android.widget.Switch;
+import android.widget.ToggleButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
@@ -118,7 +118,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private SeekBar seekBar, volumeBar;
     private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
-    private Switch liveAutoSwitch;
+    private ToggleButton liveAutoSwitch;
     private TextView liveScheduleHint;
     private boolean syncingLiveSwitch;
     private ProgressBar loadingProgress, downloadProgress;

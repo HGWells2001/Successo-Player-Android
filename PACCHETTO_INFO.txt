@@ -30,3 +30,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v4.5: pulsante cartella Download/Successo - Storie e voci dal Novecento al posto di Apri su RaiPlay.
 
 - v4.6: icone quadrate per download/cartella e interruttore Diretta programma; OFF ferma, ON riprende tra le 05:35 e le 06:00.
+
+- v4.7: Diretta programma è un pulsante a due stati con palette e angoli coordinati ai pulsanti adiacenti, logica della diretta invariata.

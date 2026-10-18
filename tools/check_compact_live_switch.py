@@ -11,7 +11,12 @@ for item in ('@+id/downloadButton','@+id/openDownloadsButton'):
     frag=xml[xml.index(item):][:430]
     assert 'android:layout_width="48dp"' in frag and 'android:layout_height="48dp"' in frag
 assert 'android:text="⬇"' in xml and 'android:text="📂"' in xml
-assert 'android:text="Diretta programma"' in xml
+assert '<ToggleButton' in xml
+assert 'android:textOn="● Diretta programma"' in xml
+assert 'android:textOff="○ Diretta programma"' in xml
+assert 'android:background="@drawable/live_toggle_bg"' in xml
+assert 'android:textColor="@color/live_toggle_text"' in xml
+assert 'private ToggleButton liveAutoSwitch;' in activity
 assert xml.count('@+id/liveAutoSwitch')==1
 assert 'openDownloadsButton.setOnClickListener(v -> openEpisodeDownloads());' in activity
 assert 'downloadButton.setOnClickListener(v -> startDownload(selectedEpisode));' in activity
@@ -22,4 +27,4 @@ assert 'context.startForegroundService(play)' in scheduler
 assert 'context.stopService(new Intent(context, LiveRadioService.class))' in scheduler
 assert 'putBoolean(LiveRadioScheduler.PREF_ENABLED, false)' in service
 assert 'LiveRadioScheduler.cancel(this)' in service
-print("OK: compact buttons, toggle stops/resumes live within schedule.")
+print("OK: compact buttons, styled ToggleButton stops/resumes live within schedule.")

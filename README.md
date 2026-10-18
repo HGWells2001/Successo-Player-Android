@@ -4,7 +4,14 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.6 – Pulsanti compatti e Diretta programma**
+**v4.7 – Pulsante Diretta programma coordinato**
+
+## Novità della v4.7
+
+- Il vecchio interruttore Android è stato trasformato in un **pulsante Diretta programma** con la stessa forma arrotondata dei comandi Download e Cartella.
+- Lo stato **spento** adotta il fondo neutro del pulsante Cartella, con simbolo ○; lo stato **acceso** usa l'accento terracotta del pulsante Download, con simbolo ●.
+- Conservata la medesima logica: durante la fascia feriale 05:35–06:00, premere il pulsante ferma oppure riprende la diretta immediatamente; fuori fascia abilita o disabilita gli avvii automatici.
+- L'etichetta resta «Diretta programma», con descrizione accessibile dello stato e riga d'orario sottostante.
 
 ## Novità della v4.6
 
@@ -128,8 +135,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.6`
-- Version code base: `4600`
+- Versione: `4.7`
+- Version code base: `4700`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

@@ -108,9 +108,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # Il codice 4600 e' riservato alla v4.6: tutte le build online sono successive.
-          code = 4600 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 4500 and code < 2100000000
+          # Il codice 4700 e' riservato alla v4.7: tutte le build online sono successive.
+          code = 4700 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 4600 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
@@ -147,6 +147,10 @@ jobs:
       - name: Verifica comandi compatti e diretta da switch
         shell: bash
         run: python3 tools/check_compact_live_switch.py
+
+      - name: Verifica pulsante a due stati per la diretta
+        shell: bash
+        run: python3 tools/check_styled_live_button.py
 
       - name: Compila release (non firmata)
         shell: bash
