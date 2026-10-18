@@ -54,7 +54,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private static final int REQ_STORAGE = 902;
 
     private static final long CATALOG_CACHE_MS = 10L * 60L * 1000L;
-    private static final long SESSION_AUTOPLAY_MAX_AGE_MS = 6L * 60L * 60L * 1000L;
     private static final Object CATALOG_CACHE_LOCK = new Object();
     private static RaiClient.Catalog cachedCatalog;
     private static long cachedCatalogAt;
@@ -358,23 +357,11 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                 prefs.getLong("session_position_ms", 0L)
         );
 
-        long sessionSavedAt = prefs.getLong(
-                "session_saved_at",
-                0L
-        );
-
-        boolean sessionIsFresh =
-                sessionSavedAt > 0L
-                        && System.currentTimeMillis() - sessionSavedAt
-                        <= SESSION_AUTOPLAY_MAX_AGE_MS;
-
-        boolean wasPlaying =
-                prefs.getBoolean(
-                        "session_was_playing",
-                        false
-                )
-                        && sessionIsFresh;
-
+        // Un rientro nell'app non e' un comando PLAY.
+        // Il lettore puo' restare attivo in background: il ramo "active != null"
+        // qui sopra lo preserva senza modificarne lo stato. Per una sessione
+        // recuperata dopo la morte del processo, si ripristina solo la
+        // puntata/posizione; la riproduzione si avvia soltanto premendo PLAY.
         selectedEpisode = restoreEpisode;
         selectedVisibleIndex = indexOfVisible(restoreEpisode);
         knownDurationMs = restoreEpisode.durationMs;
@@ -385,7 +372,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         service.restoreSession(
                 restoreEpisode,
                 resumePosition,
-                wasPlaying
+                false
         );
     }
 

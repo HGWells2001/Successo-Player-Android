@@ -459,7 +459,6 @@ public final class AudioPlaybackService extends Service {
                 prepared = true;
 
                 applyVolume(1f);
-                applySpeed();
                 requestFocus();
 
                 long duration = 0L;
@@ -482,6 +481,9 @@ public final class AudioPlaybackService extends Service {
 
                 try {
                     mp.start();
+                    // setPlaybackParams() puo' avviare un MediaPlayer in pausa.
+                    // Applichiamo la velocita' solo quando sta gia' suonando.
+                    applySpeed();
                 } catch (Exception ignored) {}
 
                 pendingResumeMs = resumeAt;
@@ -608,6 +610,7 @@ public final class AudioPlaybackService extends Service {
 
         try {
             player.start();
+            applySpeed();
         } catch (Exception ignored) {}
 
         pendingResumeMs = getCurrentPositionMs();
@@ -723,7 +726,10 @@ public final class AudioPlaybackService extends Service {
     }
 
     private void applySpeed() {
-        if (player == null || !prepared) return;
+        // Importante: MediaPlayer.setPlaybackParams puo' RIAVVIARE la riproduzione
+        // se chiamato su un MediaPlayer in pausa (es. al rientro nell'Activity).
+        // Memorizziamo la velocita' nel campo speed; la applichiamo quando parte.
+        if (player == null || !prepared || !isPlaying()) return;
 
         try {
             PlaybackParams params = player.getPlaybackParams();

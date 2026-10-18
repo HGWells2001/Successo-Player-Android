@@ -4,7 +4,16 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.1 – Interfaccia senza barra di ricerca**
+**v4.2 – Pausa persistente e nessun riavvio automatico**
+
+## Novità della v4.2
+
+- Premendo **Pausa**, uscendo e tornando nell'app, la riproduzione resta in pausa.
+- La selezione della puntata e la posizione rimangono memorizzate. Per continuare serve premere **▶**.
+- L'impostazione della velocita' audio non puo' più riavviare un `MediaPlayer` fermo, incluso quando l'interfaccia si ricollega al servizio.
+- Se l'audio sta suonando volontariamente in background, aprire l'app non lo interrompe.
+- All'avvio con processo ricreato si ripristina la posizione, ma non si avvia autonomamente la puntata.
+- Invariate diretta automatica di Rai Radio 1, 2.253 proverbi offline e firma per aggiornamento senza disinstallazione.
 
 ## Novità della v4.1
 
@@ -88,8 +97,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.1`
-- Version code base: `4100`
+- Versione: `4.2`
+- Version code base: `4200`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 
