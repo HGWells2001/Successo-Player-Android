@@ -691,7 +691,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         content.addView(title);
 
         TextView proverb = new TextView(this);
-        proverb.setText("“" + ProverbOfDay.forDate(today.dateKey) + "”");
+        proverb.setText("“" + ProverbOfDay.forDate(this, today.dateKey) + "”");
         proverb.setTextSize(19);
         proverb.setTextColor(primary);
         proverb.setLineSpacing(0, 1.15f);

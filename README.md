@@ -4,15 +4,18 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v3.8 – Aggiornamenti APK con firma persistente**
+**v3.9 – 2253 proverbi italiani offline**
 
-## Novità della v3.8
+## Novità della v3.9
 
 - nuovo popup **📜 Il proverbio del giorno** dopo quello astronomico;
-- **730 proverbi italiani distinti** in una raccolta offline, uno diverso ogni giorno per 730 giorni consecutivi (due anni);
+- **2253 proverbi italiani distinti** in una raccolta offline, uno diverso ogni giorno per 2253 giorni consecutivi (oltre sei anni);
 - entrambi i popup si mostrano **solo una volta al primo accesso quotidiano**;
 - design coerente con i colori dell'app e con il tema giorno/notte;
 - compatibilità con la riproduzione in background e i controlli sulla schermata di blocco.
+
+- archivio testuale esterno al codice Java, espandibile senza connessioni o dipendenze web;
+- proverbi selezionati dalla tradizione popolare, con deduplicazione e controllo automatico durante ogni build.
 
 ## Controlli multimediali
 
@@ -45,7 +48,7 @@ I detti provengono dalla tradizione popolare italiana. La selezione è stata int
 
 ## Aggiornamenti senza disinstallazione
 
-Per sostituire un APK gia installato, Android richiede **lo stesso applicationId**, **lo stesso certificato di firma** e un **versionCode crescente**. I primi APK GitHub fino alla v3.7 erano compilati in debug su macchine temporanee, che cambiano la chiave a ogni build. La v3.8 corregge la compilazione GitHub: gli APK aggiornabili richiedono una firma permanente.
+Per sostituire un APK gia installato, Android richiede **lo stesso applicationId**, **lo stesso certificato di firma** e un **versionCode crescente**. I primi APK GitHub fino alla v3.7 erano compilati in debug su macchine temporanee, che cambiano la chiave a ogni build. Dalla v3.8 la compilazione corregge la compilazione GitHub: gli APK aggiornabili richiedono una firma permanente.
 
 **Configurazione una tantum, sul PC Windows usato per il builder:**
 1. Esegui `windows-builder/COMPILA_SUCCESSO_PLAYER_v24.bat` almeno una volta per creare o riutilizzare la chiave `%LOCALAPPDATA%\SuccessoPlayerBuild\successo_update.keystore`. Conservane un backup privato.
@@ -70,8 +73,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `3.8`
-- Version code base: `3800`
+- Versione: `3.9`
+- Version code base: `3900`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

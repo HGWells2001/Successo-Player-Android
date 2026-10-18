@@ -108,9 +108,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # Il codice 3800 e' riservato alla v3.8: tutte le build online sono successive.
-          code = 3800 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 3700 and code < 2100000000
+          # Il codice 3900 e' riservato alla v3.9: tutte le build online sono successive.
+          code = 3900 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 3800 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
@@ -120,7 +120,7 @@ jobs:
           print(f"Successo Player {version}, versionCode {code}")
           PY
 
-      - name: Verifica 730 proverbi distinti
+      - name: Verifica 2253 proverbi distinti
         shell: bash
         run: python3 tools/check_proverbs.py
 

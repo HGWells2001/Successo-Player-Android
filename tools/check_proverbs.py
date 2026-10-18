@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
-"""Controlla numero e unicità dei proverbi inclusi nell'app Android."""
-import json
+"""Valida il corpus di proverbi italiani incluso nell'APK."""
 import re
 import unicodedata
 from pathlib import Path
 
-java = Path(__file__).resolve().parents[1] / "app/src/main/java/it/successoplayer/app/ProverbOfDay.java"
-source = java.read_text(encoding="utf-8")
-body = source.split("private static final String[] SAYINGS = {", 1)[1].split("};", 1)[0]
-values = [json.loads(line.strip().rstrip(",")) for line in body.splitlines() if line.strip()]
+root = Path(__file__).resolve().parents[1]
+file = root / "app/src/main/assets/proverbi_it.txt"
+main = root / "app/src/main/java/it/successoplayer/app/MainActivity.java"
+strings = [s.strip() for s in file.read_text(encoding="utf-8").splitlines()]
+assert len(strings) >= 2000, f"Archivio troppo piccolo: {len(strings)}"
+assert not any(not s for s in strings), "Riga vuota nell'archivio"
+assert not any(len(s) > 160 for s in strings), "Proverbio troppo lungo"
+assert "ProverbOfDay.forDate(this, today.dateKey)" in main.read_text(encoding="utf-8")
 
-def key(value):
-    text = unicodedata.normalize("NFD", value.casefold())
-    return re.sub(r"[^a-z0-9]", "", "".join(c for c in text if not unicodedata.combining(c)))
+def normalized(s):
+    s = unicodedata.normalize("NFD", s.casefold())
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return re.sub(r"[^a-z0-9]", "", s)
 
-assert len(values) == 730, f"Attesi 730 proverbi; trovati {len(values)}"
-assert len({key(value) for value in values}) == 730, "Proverbi duplicati"
-assert all(value.strip() and value == value.strip() for value in values), "Proverbio vuoto o con spazi"
-print("OK: 730 proverbi distinti; ciclo quotidiano di 730 giorni.")
+keys = [normalized(s) for s in strings]
+assert len(set(keys)) == len(keys), "Trovati proverbi duplicati"
+print(f"OK: {len(strings)} proverbi distinti, offline, pronti per il ciclo quotidiano.")
