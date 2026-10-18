@@ -4,9 +4,17 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v3.5 – Controlli multimediali su schermata di blocco**
+**v3.6 – Proverbio del giorno**
 
-## Novità della v3.5
+## Novità della v3.6
+
+- nuovo popup **📜 Il proverbio del giorno** dopo quello astronomico;
+- **80 proverbi italiani** in una raccolta offline, uno diverso ogni giorno;
+- entrambi i popup si mostrano **solo una volta al primo accesso quotidiano**;
+- design coerente con i colori dell'app e con il tema giorno/notte;
+- compatibilità con la riproduzione in background e i controlli sulla schermata di blocco.
+
+## Controlli multimediali
 
 - vera **MediaSession Android** per i controlli multimediali di sistema;
 - player visibile sulla **schermata di blocco** durante la riproduzione;
@@ -40,7 +48,7 @@ Nella cartella [`windows-builder`](windows-builder) sono inclusi gli script di b
 Avvia:
 
 ```text
-COMPILA_SUCCESSO_PLAYER_v23.bat
+COMPILA_SUCCESSO_PLAYER_v24.bat
 ```
 
 Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di firma persistente per gli aggiornamenti.
@@ -48,8 +56,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `3.5`
-- Version code base: `3500`
+- Versione: `3.6`
+- Version code base: `3600`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

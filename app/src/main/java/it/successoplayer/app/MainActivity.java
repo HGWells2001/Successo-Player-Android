@@ -248,7 +248,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         bindPlaybackService();
         restoreDownloadProgressIfNeeded();
-        showAstronomyPopupIfNeeded();
+        // Prima il popup astronomico, poi il proverbio quotidiano.
+        if (!showAstronomyPopupIfNeeded()) {
+            showProverbPopupIfNeeded();
+        }
     }
 
     private void mainRebindPlaybackService() {
@@ -563,13 +566,13 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         downloadHandler.post(downloadProgressPoller);
     }
 
-    private void showAstronomyPopupIfNeeded() {
-        if (prefs == null || isFinishing()) return;
+    private boolean showAstronomyPopupIfNeeded() {
+        if (prefs == null || isFinishing() || destroyed) return false;
 
         AstronomyInfo.Summary info = AstronomyInfo.today();
         String lastShown = prefs.getString("astronomy_popup_last_date", "");
 
-        if (info.dateKey.equals(lastShown)) return;
+        if (info.dateKey.equals(lastShown)) return false;
 
         // Registriamo subito la giornata, così rotazioni o ricreazioni
         // dell'Activity non fanno comparire il popup due volte.
@@ -630,6 +633,12 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                 .setPositiveButton("OK", null)
                 .create();
 
+        astronomyDialog.setOnDismissListener(dialog -> {
+            if (activityStarted && !destroyed && !isFinishing()) {
+                showProverbPopupIfNeeded();
+            }
+        });
+
         astronomyDialog.setOnShowListener(dialog -> {
             Window window = astronomyDialog.getWindow();
             if (window != null) {
@@ -651,6 +660,69 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             astronomyDialog.getButton(AlertDialog.BUTTON_POSITIVE)
                     .setTextColor(getResources().getColor(R.color.accent, getTheme()));
         } catch (Exception ignored) {}
+        return true;
+    }
+
+    private void showProverbPopupIfNeeded() {
+        if (prefs == null || !activityStarted || destroyed || isFinishing()) return;
+
+        AstronomyInfo.Summary today = AstronomyInfo.today();
+        String lastShown = prefs.getString("proverb_popup_last_date", "");
+        if (today.dateKey.equals(lastShown)) return;
+
+        prefs.edit().putString("proverb_popup_last_date", today.dateKey).apply();
+
+        float density = getResources().getDisplayMetrics().density;
+        int horizontalPadding = (int) (22 * density);
+        int verticalPadding = (int) (20 * density);
+        int primary = getResources().getColor(R.color.textPrimary, getTheme());
+        int secondary = getResources().getColor(R.color.textSecondary, getTheme());
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
+        content.setBackgroundColor(getResources().getColor(R.color.panel, getTheme()));
+
+        TextView title = new TextView(this);
+        title.setText("📜 Il proverbio del giorno");
+        title.setTextSize(21);
+        title.setTextColor(primary);
+        title.setPadding(0, 0, 0, (int) (16 * density));
+        content.addView(title);
+
+        TextView proverb = new TextView(this);
+        proverb.setText("“" + ProverbOfDay.forDate(today.dateKey) + "”");
+        proverb.setTextSize(19);
+        proverb.setTextColor(primary);
+        proverb.setLineSpacing(0, 1.15f);
+        content.addView(proverb);
+
+        TextView note = new TextView(this);
+        note.setText("Un detto della tradizione popolare italiana");
+        note.setTextSize(12);
+        note.setTextColor(secondary);
+        note.setPadding(0, (int) (18 * density), 0, 0);
+        content.addView(note);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(content)
+                .setPositiveButton("OK", null)
+                .create();
+
+        dialog.setOnShowListener(ignored -> {
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setLayout(
+                        (int) (getResources().getDisplayMetrics().widthPixels * 0.94f),
+                        WindowManager.LayoutParams.WRAP_CONTENT
+                );
+            }
+            Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            if (button != null) {
+                button.setTextColor(getResources().getColor(R.color.accent, getTheme()));
+            }
+        });
+        dialog.show();
     }
 
     private void bindViews() {
