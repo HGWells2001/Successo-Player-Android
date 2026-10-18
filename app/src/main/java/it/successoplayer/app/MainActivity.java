@@ -3,6 +3,7 @@ package it.successoplayer.app;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AlarmManager;
 import android.app.DownloadManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -36,6 +37,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
@@ -116,6 +118,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private SeekBar seekBar, volumeBar;
     private Button playButton, refreshButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openRaiButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
+    private Switch liveAutoSwitch;
+    private TextView liveScheduleHint;
+    private Button liveListenButton, liveStopButton;
     private ProgressBar loadingProgress, downloadProgress;
     private TextView downloadProgressText;
     private final Handler downloadHandler = new Handler(Looper.getMainLooper());
@@ -236,6 +241,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         AstronomyScheduler.cancel(this);
         EpisodeCheckScheduler.schedule(this);
+        LiveRadioScheduler.schedule(this);
 
         loadCatalog(false);
     }
@@ -753,9 +759,54 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         loadingProgress = findViewById(R.id.loadingProgress);
         downloadProgress = findViewById(R.id.downloadProgress);
         downloadProgressText = findViewById(R.id.downloadProgressText);
+        liveAutoSwitch = findViewById(R.id.liveAutoSwitch);
+        liveScheduleHint = findViewById(R.id.liveScheduleHint);
+        liveListenButton = findViewById(R.id.liveListenButton);
+        liveStopButton = findViewById(R.id.liveStopButton);
     }
 
     private void configureUi() {
+        liveAutoSwitch.setChecked(LiveRadioScheduler.enabled(this));
+        updateLiveRadioHint();
+        liveAutoSwitch.setOnCheckedChangeListener((button, enabled) -> {
+            LiveRadioScheduler.setEnabled(this, enabled);
+            updateLiveRadioHint();
+            if (enabled && !LiveRadioScheduler.canSchedulePrecisely(this)) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Consenti avvio alle 05:35")
+                        .setMessage("Android richiede l'autorizzazione 'Sveglie e promemoria' " +
+                                "per avviare Rai Radio 1 puntualmente anche a schermo bloccato. " +
+                                "Senza il permesso l'orario potrebbe non essere rispettato.")
+                        .setPositiveButton("Apri impostazioni", (dialog, which) -> {
+                            try {
+                                Intent settings = new Intent(
+                                        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                                settings.setData(Uri.parse("package:" + getPackageName()));
+                                startActivity(settings);
+                            } catch (Exception e) {
+                                toast("Apri Impostazioni > App > Sveglie e promemoria.");
+                            }
+                        })
+                        .setNegativeButton("Non ora", null)
+                        .show();
+            }
+        });
+        liveListenButton.setOnClickListener(v -> {
+            try {
+                Intent play = new Intent(this, LiveRadioService.class)
+                        .setAction(LiveRadioService.ACTION_START_MANUAL);
+                if (Build.VERSION.SDK_INT >= 26) startForegroundService(play);
+                else startService(play);
+                toast("Connessione alla diretta Rai Radio 1…");
+            } catch (Exception e) {
+                toast("Impossibile avviare la diretta. Controlla la connessione.");
+            }
+        });
+        liveStopButton.setOnClickListener(v -> {
+            stopService(new Intent(this, LiveRadioService.class));
+            toast("Diretta interrotta.");
+        });
+
         adapter = new EpisodeAdapter(this, new EpisodeAdapter.FavoriteHandler() {
             @Override public boolean isFavorite(Episode episode) {
                 return MainActivity.this.isFavorite(episode);
@@ -1388,6 +1439,17 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         }
     }
 
+    private void updateLiveRadioHint() {
+        if (liveScheduleHint == null) return;
+        if (!LiveRadioScheduler.enabled(this)) {
+            liveScheduleHint.setText("Diretta automatica disattivata · orario italiano.");
+        } else if (LiveRadioScheduler.canSchedulePrecisely(this)) {
+            liveScheduleHint.setText("Attiva · lun–ven, dalle 05:35 alle 06:00 (ora italiana).");
+        } else {
+            liveScheduleHint.setText("⚠ Autorizza 'Sveglie e promemoria' per la puntualità.");
+        }
+    }
+
     private void requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIFICATIONS);
@@ -1506,6 +1568,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     @Override
     protected void onResume() {
         super.onResume();
+        LiveRadioScheduler.schedule(this);
+        updateLiveRadioHint();
 
         themeHandler.removeCallbacks(themeCheckRunnable);
         themeHandler.post(themeCheckRunnable);

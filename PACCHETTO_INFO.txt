@@ -16,3 +16,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - popup del proverbio subito dopo quello astronomico, una sola volta al giorno
 - Build GitHub firmate con keystore persistente; niente chiavi debug nuove a ogni build
 - Per configurare la firma: windows-builder/CONFIGURA_FIRMA_GITHUB.ps1
+
+- v4.0: ascolto automatico opzionale Rai Radio 1 05:35-06:00 lunedi-venerdi; firma permanente

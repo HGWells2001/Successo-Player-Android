@@ -48,6 +48,55 @@
             android:text="↻" />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/panel_bg"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="9dp">
+
+        <Switch
+            android:id="@+id/liveAutoSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔴 Diretta automatica · lun–ven 05:35–06:00"
+            android:textColor="@color/textPrimary"
+            android:textSize="13sp"
+            android:contentDescription="Attiva ascolto automatico di Rai Radio 1 nei giorni feriali" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/liveListenButton"
+                style="@style/ControlButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="42dp"
+                android:text="▶ Rai Radio 1 ora"
+                android:textSize="12sp" />
+            <Button
+                android:id="@+id/liveStopButton"
+                style="@style/ControlButton"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginLeft="6dp"
+                android:text="■ Ferma"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/liveScheduleHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/textSecondary"
+            android:textSize="11sp"
+            android:text="Orario italiano. Richiede Internet e permesso sveglie esatte." />
+    </LinearLayout>
+
     <EditText
         android:id="@+id/searchBox"
         android:layout_width="match_parent"

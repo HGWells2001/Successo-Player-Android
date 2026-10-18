@@ -4,7 +4,16 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v3.9 – 2253 proverbi italiani offline**
+**v4.0 – Rai Radio 1 automatica alle 05:35**
+
+## Novità della v4.0
+
+- **Diretta automatica opzionale**: switch nell'interfaccia; dal lunedì al venerdì, dalle 05:35 alle 06:00 (fuso Europe/Rome), l'app avvia e ferma il flusso MP3 di Rai Radio 1;
+- lettore radio dedicato, riproducibile anche a schermo bloccato tramite un servizio multimediale foreground e notifica con comando Stop;
+- pulsanti per ascoltare o fermare Rai Radio 1 manualmente in qualsiasi momento;
+- rischedulazione dopo riavvio del telefono, aggiornamento app, variazioni di ora/fuso e permessi;
+- per gli orari precisi Android 12+ richiede l'autorizzazione **Sveglie e promemoria**. In mancanza, l'avvio è approssimato dal sistema e può avvenire in ritardo;
+- necessita connessione Internet: non è garantita la disponibilità continua dello stream Rai. Non riattiva automaticamente il servizio se Android impedisce la partenza per limiti di batteria;
 
 ## Novità della v3.9
 
@@ -73,8 +82,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `3.9`
-- Version code base: `3900`
+- Versione: `4.0`
+- Version code base: `4000`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 
