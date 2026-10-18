@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.DownloadManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -91,6 +92,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private boolean bindingActive;
     private boolean activityStarted;
     private boolean destroyed;
+    private boolean exitingApp;
     private boolean catalogLoaded;
 
     private boolean userSeeking;
@@ -111,7 +113,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, refreshButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openRaiButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button playButton, refreshButton, exitButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openRaiButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private Switch liveAutoSwitch;
     private TextView liveScheduleHint;
@@ -712,6 +714,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         volumeBar = findViewById(R.id.volumeBar);
         playButton = findViewById(R.id.playButton);
         refreshButton = findViewById(R.id.refreshButton);
+        exitButton = findViewById(R.id.exitButton);
         previousButton = findViewById(R.id.previousButton);
         nextButton = findViewById(R.id.nextButton);
         shuffleButton = findViewById(R.id.shuffleButton);
@@ -824,6 +827,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             applyFilter();
         });
 
+        exitButton.setOnClickListener(v -> closeAppCompletely());
         refreshButton.setOnClickListener(v -> loadCatalog(true));
         playButton.setOnClickListener(v -> {
             if (selectedEpisode == null) {
@@ -1570,8 +1574,36 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         super.onLowMemory();
     }
 
+    /**
+     * Una chiusura esplicita (Back o pulsante Esci) ferma subito entrambi i
+     * servizi. Il tasto Home e lo spegnimento dello schermo NON sono chiusure.
+     */
+    private void closeAppCompletely() {
+        if (exitingApp) return;
+        exitingApp = true;
+        if (bound && service != null) {
+            service.shutdownForAppExit();
+        }
+        PlaybackExit.stopAll(this);
+        finishAndRemoveTask();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onBackPressed() {
+        closeAppCompletely();
+    }
+
     @Override
     protected void onDestroy() {
+        // onDestroy viene chiamato anche durante i cambi di configurazione.
+        // Ferma il player solo se l'Activity sta davvero terminando.
+        if (isFinishing()) {
+            if (bound && service != null) {
+                service.shutdownForAppExit();
+            }
+            PlaybackExit.stopAll(this);
+        }
         destroyed = true;
 
         themeHandler.removeCallbacksAndMessages(null);

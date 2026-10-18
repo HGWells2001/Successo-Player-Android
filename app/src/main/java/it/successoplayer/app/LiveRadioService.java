@@ -212,7 +212,17 @@ public final class LiveRadioService extends Service {
             focusRequest = null;
         }
         stopForeground(STOP_FOREGROUND_REMOVE);
+        NotificationManager manager = (NotificationManager)
+                getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) manager.cancel(NOTIFICATION_ID);
         stopSelf();
+    }
+
+    @Override public void onTaskRemoved(Intent rootIntent) {
+        // Anche la diretta deve sparire quando l'app viene rimossa.
+        shutdown();
+        PlaybackExit.stopAll(this);
+        super.onTaskRemoved(rootIntent);
     }
 
     @Override public void onDestroy() {
@@ -224,6 +234,10 @@ public final class LiveRadioService extends Service {
             audioManager.abandonAudioFocusRequest(focusRequest);
             focusRequest = null;
         }
+        stopForeground(STOP_FOREGROUND_REMOVE);
+        NotificationManager manager = (NotificationManager)
+                getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) manager.cancel(NOTIFICATION_ID);
         super.onDestroy();
     }
 

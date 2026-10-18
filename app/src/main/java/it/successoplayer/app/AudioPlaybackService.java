@@ -792,6 +792,37 @@ public final class AudioPlaybackService extends Service {
         }
     }
 
+    /**
+     * Chiusura completa del player: conserva la posizione ma non puo'
+     * conservare lo stato "in riproduzione" dopo l'uscita.
+     */
+    public void shutdownForAppExit() {
+        final long position = getCurrentPositionMs();
+        final long duration = getCurrentDurationMs();
+        generation.incrementAndGet();
+        persistSessionNow(position, duration, false);
+        releasePlayer();
+        pendingResumeMs = position;
+        startedForPlayback = false;
+        abandonFocus();
+
+        if (mediaSession != null) {
+            try {
+                mediaSession.setPlaybackState(new PlaybackState.Builder()
+                        .setState(PlaybackState.STATE_STOPPED, position, 0f)
+                        .build());
+                mediaSession.setActive(false);
+            } catch (Exception ignored) {}
+        }
+
+        stopForeground(STOP_FOREGROUND_REMOVE);
+        NotificationManager nm = (NotificationManager)
+                getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.cancel(NOTIFICATION_ID);
+        if (listener != null) listener.onPlaybackState(false, false);
+        stopSelf();
+    }
+
     public void stopPlayback() {
         long duration = getCurrentDurationMs();
 
@@ -1259,12 +1290,9 @@ public final class AudioPlaybackService extends Service {
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        persistSessionNow(
-                getCurrentPositionMs(),
-                getCurrentDurationMs(),
-                isPlaying()
-        );
-
+        // "Rimuovi dalle recenti" equivale a un vero Esci.
+        shutdownForAppExit();
+        PlaybackExit.stopAll(this);
         super.onTaskRemoved(rootIntent);
     }
 
@@ -1272,11 +1300,17 @@ public final class AudioPlaybackService extends Service {
     public void onDestroy() {
         main.removeCallbacks(ticker);
 
+        // Se il servizio viene distrutto, nessuna riproduzione puo' continuare.
         persistSessionNow(
                 getCurrentPositionMs(),
                 getCurrentDurationMs(),
-                isPlaying()
+                false
         );
+
+        stopForeground(STOP_FOREGROUND_REMOVE);
+        NotificationManager nm = (NotificationManager)
+                getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.cancel(NOTIFICATION_ID);
 
         listener = null;
 

@@ -46,6 +46,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="↻" />
+
+        <Button
+            android:id="@+id/exitButton"
+            style="@style/HeaderButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="✕"
+            android:contentDescription="Esci e interrompi tutta la riproduzione" />
     </LinearLayout>
 
     <LinearLayout
