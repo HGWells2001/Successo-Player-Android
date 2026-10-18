@@ -288,39 +288,36 @@
                 android:textSize="21sp"
                 android:contentDescription="Apri la cartella delle puntate scaricate" />
 
-            <LinearLayout
+            <ToggleButton
+                android:id="@+id/liveAutoSwitch"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_weight="1"
                 android:layout_marginLeft="10dp"
-                android:orientation="vertical">
-
-                <ToggleButton
-                    android:id="@+id/liveAutoSwitch"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:gravity="center"
-                    android:paddingLeft="7dp"
-                    android:paddingRight="7dp"
-                    android:background="@drawable/live_toggle_bg"
-                    android:textColor="@color/live_toggle_text"
-                    android:textOn="● Diretta programma"
-                    android:textOff="○ Diretta programma"
-                    android:textAllCaps="false"
-                    android:textSize="12sp"
-                    android:contentDescription="Diretta programma: attiva o interrompi la diretta e la programmazione automatica" />
-
-                <TextView
-                    android:id="@+id/liveScheduleHint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/textSecondary"
-                    android:textSize="10sp"
-                    android:text="Lun–ven 05:35–06:00" />
-            </LinearLayout>
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:gravity="center"
+                android:paddingLeft="7dp"
+                android:paddingRight="7dp"
+                android:background="@drawable/live_toggle_bg"
+                android:textColor="@color/live_toggle_text"
+                android:textOn="● Diretta programma"
+                android:textOff="○ Diretta programma"
+                android:textAllCaps="false"
+                android:textSize="12sp"
+                android:contentDescription="Diretta programma: attiva o interrompi la diretta e la programmazione automatica" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/liveScheduleHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:layout_marginLeft="113dp"
+            android:gravity="center"
+            android:textColor="@color/textSecondary"
+            android:textSize="10sp"
+            android:text="Lun–ven 05:35–06:00" />
 
         <TextView
             android:id="@+id/downloadProgressText"

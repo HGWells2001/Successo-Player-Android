@@ -4,7 +4,14 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.7 – Pulsante Diretta programma coordinato**
+**v4.8 – Allineamento perfetto dei comandi**
+
+## Novità della v4.8
+
+- Corretto l'allineamento verticale del pulsante **Diretta programma** rispetto ai pulsanti **⬇** e **📂**.
+- I tre controlli sono ora figli diretti della **stessa riga orizzontale**, con altezza identica di **48 dp**.
+- La scritta con l'orario della diretta compare **sotto la riga dei pulsanti** e non influisce più sul loro posizionamento.
+- Invariato il comportamento ON/OFF, la programmazione 05:35–06:00 e la grafica coordinata introdotta nella versione 4.7.
 
 ## Novità della v4.7
 
@@ -135,8 +142,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.7`
-- Version code base: `4700`
+- Versione: `4.8`
+- Version code base: `4800`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

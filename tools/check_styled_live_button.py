@@ -13,6 +13,20 @@ tree = ET.parse(layout)
 toggle = next((x for x in tree.iter() if x.attrib.get(ns + "id") == "@+id/liveAutoSwitch"), None)
 assert toggle is not None and toggle.tag == "ToggleButton"
 assert toggle.attrib.get(ns + "layout_height") == "48dp"
+assert toggle.attrib.get(ns + "layout_width") == "0dp"
+assert toggle.attrib.get(ns + "layout_weight") == "1"
+# Tutti e tre i pulsanti devono essere fratelli nella stessa riga,
+# senza una colonna di testo che ne altera il centraggio verticale.
+row = next(parent for parent in tree.iter() if toggle in list(parent))
+for button_id in ("@+id/downloadButton", "@+id/openDownloadsButton"):
+    button = next(child for child in row if child.attrib.get(ns + "id") == button_id)
+    assert button.attrib.get(ns + "layout_height") == "48dp"
+    assert button.attrib.get(ns + "layout_width") == "48dp"
+hint = next(element for element in tree.iter() if element.attrib.get(ns + "id") == "@+id/liveScheduleHint")
+assert hint not in list(row)
+container = next(parent for parent in tree.iter() if row in list(parent))
+assert hint in list(container)
+assert row.attrib.get(ns + "gravity") == "center_vertical"
 assert toggle.attrib.get(ns + "textOn") == "● Diretta programma"
 assert toggle.attrib.get(ns + "textOff") == "○ Diretta programma"
 assert toggle.attrib.get(ns + "background") == "@drawable/live_toggle_bg"
@@ -31,4 +45,4 @@ color = list(ET.parse(palette).getroot())
 assert color[0].attrib[ns + "state_checked"] == "true"
 assert color[0].attrib[ns + "color"] == "@color/headerText"
 assert color[1].attrib[ns + "color"] == "@color/textPrimary"
-print("OK: states, colors, form factor and behavior wired.")
+print("OK: three controls vertically aligned in one 48dp row; status below.")

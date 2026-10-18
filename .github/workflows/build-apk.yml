@@ -108,9 +108,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # Il codice 4700 e' riservato alla v4.7: tutte le build online sono successive.
-          code = 4700 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 4600 and code < 2100000000
+          # Il codice 4800 e' riservato alla v4.8: tutte le build online sono successive.
+          code = 4800 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 4700 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
