@@ -10,7 +10,8 @@ layout = (root / "app/src/main/res/layout/activity_main.xml").read_text(encoding
 assert "openRaiButton" not in activity + layout
 assert "Apri su RaiPlay" not in layout
 assert '@+id/openDownloadsButton' in layout
-assert 'Apri download' in layout
+assert 'android:text="📂"' in layout
+assert 'android:contentDescription="Apri la cartella delle puntate scaricate"' in layout
 assert "openDownloadsButton.setOnClickListener(v -> openEpisodeDownloads());" in activity
 assert 'EPISODE_DOWNLOAD_FOLDER = "Successo - Storie e voci dal Novecento"' in activity
 assert 'DocumentsContract.buildDocumentUri(' in activity
