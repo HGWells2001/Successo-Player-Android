@@ -20,6 +20,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-powershell:
+    name: Verifica sintassi PowerShell 5.1
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifica parser script di firma
+        shell: powershell
+        run: |
+          $file = Join-Path $PWD 'windows-builder\CONFIGURA_FIRMA_GITHUB.ps1'
+          $tokens = $null
+          $parseErrors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            $file, [ref]$tokens, [ref]$parseErrors
+          )
+          if ($parseErrors.Count -gt 0) {
+            foreach ($err in $parseErrors) {
+              Write-Host ("Errore alla riga {0}: {1}" -f $err.Extent.StartLineNumber, $err.Message)
+            }
+            exit 1
+          }
+          Write-Host "Sintassi PowerShell corretta."
+
   build-apk:
     name: APK firmato permanente
     runs-on: ubuntu-latest
