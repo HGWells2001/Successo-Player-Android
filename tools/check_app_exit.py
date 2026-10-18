@@ -10,8 +10,8 @@ shutdown = (source / "PlaybackExit.java").read_text(encoding="utf-8")
 xml = (base / "app/src/main/res/layout/activity_main.xml").read_text(encoding="utf-8")
 manifest = (base / "app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 
-assert '@+id/exitButton' in xml
-assert 'exitButton.setOnClickListener(v -> closeAppCompletely())' in activity
+assert '@+id/exitButton' not in xml
+assert 'exitButton' not in activity
 assert 'public void onBackPressed()' in activity
 assert 'finishAndRemoveTask()' in activity
 assert 'if (isFinishing())' in activity
