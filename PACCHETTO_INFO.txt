@@ -1,4 +1,4 @@
-Successo Player Android v3.5 - Player schermata di blocco
+Successo Player Android v3.7 - 730 proverbi del giorno e player schermata di blocco
 
 - aggiunta MediaSession Android reale per i controlli multimediali di sistema
 - player visibile nella schermata di blocco quando una puntata è attiva
@@ -10,4 +10,7 @@ Successo Player Android v3.5 - Player schermata di blocco
 - foreground service mediaPlayback mantenuto anche con Activity in background
 - tutte le funzioni v3.4 mantenute: Non ascoltate, Preferite, Shuffle, stabilità background, tema solare, popup e notifiche nuove puntate
 - applicationId invariato: it.successoplayer.app
-- versionCode base 3500
+- versionCode base 3700
+
+- 730 proverbi tradizionali offline, diversi ogni giorno per 730 giorni
+- popup del proverbio subito dopo quello astronomico, una sola volta al giorno

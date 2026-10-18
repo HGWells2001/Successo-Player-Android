@@ -1,5 +1,5 @@
 name: Build Successo Player APK
-# Rebuild trigger for v3.6 - 2026-10-10
+# Rebuild trigger for v3.7 - 2026-10-10
 
 on:
   push:
@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   build-apk:
-    name: Build Android APK v3.6
+    name: Build Android APK v3.7
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -68,6 +68,10 @@ jobs:
         shell: bash
         run: grep -n "versionCode\|versionName" app/build.gradle
 
+      - name: Verify 730 unique proverbs
+        shell: bash
+        run: python3 tools/check_proverbs.py
+
       - name: Build debug APK
         shell: bash
         run: gradle --no-daemon --stacktrace :app:assembleDebug
@@ -77,16 +81,16 @@ jobs:
         run: |
           test -f app/build/outputs/apk/debug/app-debug.apk
           mkdir -p release
-          cp app/build/outputs/apk/debug/app-debug.apk release/SuccessoPlayer_Android_v3.6_build3600.apk
-          sha256sum release/SuccessoPlayer_Android_v3.6_build3600.apk | tee release/SHA256.txt
+          cp app/build/outputs/apk/debug/app-debug.apk release/SuccessoPlayer_Android_v3.7_build3700.apk
+          sha256sum release/SuccessoPlayer_Android_v3.7_build3700.apk | tee release/SHA256.txt
           ls -lh release/
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SuccessoPlayer-Android-v3.6-APK
+          name: SuccessoPlayer-Android-v3.7-APK
           path: |
-            release/SuccessoPlayer_Android_v3.6_build3600.apk
+            release/SuccessoPlayer_Android_v3.7_build3700.apk
             release/SHA256.txt
           if-no-files-found: error
           compression-level: 0

@@ -1,7 +1,7 @@
 ﻿param(
     [string]$ProjectZip = "",
     [string]$ProjectDir = "",
-    [string]$VersionName = "3.6"
+    [string]$VersionName = "3.7"
 )
 
 $ErrorActionPreference = "Stop"
@@ -312,12 +312,18 @@ function Resolve-AndroidProject([string]$BaseFolder, [string]$ZipArgument, [stri
     }
 
     if (-not $ZipArgument) {
-        $candidate = Get-ChildItem $BaseFolder -Filter "SuccessoPlayer_Android*v3.6*ProverbioDelGiorno*Source*.zip" -File -ErrorAction SilentlyContinue |
+        # Se il builder fa parte del repository, compila direttamente i sorgenti aggiornati.
+        $repositoryRoot = Split-Path $BaseFolder -Parent
+        if (Test-Path (Join-Path $repositoryRoot "settings.gradle")) {
+            return $repositoryRoot
+        }
+
+        $candidate = Get-ChildItem $BaseFolder -Filter "SuccessoPlayer_Android*v3.7*Source*.zip" -File -ErrorAction SilentlyContinue |
             Sort-Object LastWriteTime -Descending |
             Select-Object -First 1
 
         if (-not $candidate) {
-            throw "Non trovo SuccessoPlayer_Android_v3.6_ProverbioDelGiorno_Source.zip accanto allo script."
+            throw "Non trovo SuccessoPlayer_Android_v3.7_Source.zip accanto allo script."
         }
 
         $ZipArgument = $candidate.FullName

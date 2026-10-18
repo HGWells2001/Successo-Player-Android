@@ -4,12 +4,12 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v3.6 – Proverbio del giorno**
+**v3.7 – 730 proverbi del giorno**
 
-## Novità della v3.6
+## Novità della v3.7
 
 - nuovo popup **📜 Il proverbio del giorno** dopo quello astronomico;
-- **80 proverbi italiani** in una raccolta offline, uno diverso ogni giorno;
+- **730 proverbi italiani distinti** in una raccolta offline, uno diverso ogni giorno per 730 giorni consecutivi (due anni);
 - entrambi i popup si mostrano **solo una volta al primo accesso quotidiano**;
 - design coerente con i colori dell'app e con il tema giorno/notte;
 - compatibilità con la riproduzione in background e i controlli sulla schermata di blocco.
@@ -41,6 +41,8 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 - tema automatico giorno/notte basato su alba e tramonto;
 - palette grafica ispirata al programma.
 
+I detti provengono dalla tradizione popolare italiana. La selezione è stata integrata e deduplicata a partire anche dalla [raccolta pubblica di proverbi italiani](https://github.com/regolimassimo/Proverbi/blob/master/app/src/main/assets/proverbi-IT.txt); le formule proverbiali sono di origine tradizionale.
+
 ## Build su Windows
 
 Nella cartella [`windows-builder`](windows-builder) sono inclusi gli script di build automatica.
@@ -56,8 +58,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `3.6`
-- Version code base: `3600`
+- Versione: `3.7`
+- Version code base: `3700`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 
