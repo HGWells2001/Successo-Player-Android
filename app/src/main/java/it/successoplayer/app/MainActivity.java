@@ -25,14 +25,11 @@ import android.os.IBinder;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
@@ -113,7 +110,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private SharedPreferences prefs;
 
     private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText;
-    private EditText searchBox;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
     private Button playButton, refreshButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openRaiButton, favoritesFilterButton, unlistenedFilterButton;
@@ -394,16 +390,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     private void restoreUiState(Bundle savedInstanceState) {
-        String savedSearch;
         String savedEpisode;
         int savedPosition;
 
         if (savedInstanceState != null) {
-            savedSearch = savedInstanceState.getString(
-                    "search_query",
-                    prefs.getString("ui_search_query", "")
-            );
-
             savedEpisode = savedInstanceState.getString(
                     "selected_episode_id",
                     prefs.getString("ui_selected_episode_id", "")
@@ -414,7 +404,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                     prefs.getInt("ui_list_position", 0)
             );
         } else {
-            savedSearch = prefs.getString("ui_search_query", "");
             savedEpisode = prefs.getString("ui_selected_episode_id", "");
             savedPosition = prefs.getInt("ui_list_position", 0);
         }
@@ -422,10 +411,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         pendingRestoreEpisodeId = savedEpisode == null ? "" : savedEpisode;
         pendingListPosition = Math.max(0, savedPosition);
 
-        if (savedSearch != null && !savedSearch.isEmpty()) {
-            searchBox.setText(savedSearch);
-            searchBox.setSelection(savedSearch.length());
-        }
     }
 
     private void persistUiState() {
@@ -441,14 +426,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                         ? Math.max(0, episodeList.getFirstVisiblePosition())
                         : 0;
 
-        String search =
-                searchBox != null
-                        ? searchBox.getText().toString()
-                        : "";
-
         prefs.edit()
                 .putString("ui_selected_episode_id", selectedId)
-                .putString("ui_search_query", search)
+                .remove("ui_search_query")
                 .putInt("ui_list_position", listPosition)
                 .apply();
     }
@@ -740,7 +720,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         totalTime = findViewById(R.id.totalTime);
         volumeText = findViewById(R.id.volumeText);
         statusText = findViewById(R.id.statusText);
-        searchBox = findViewById(R.id.searchBox);
         episodeList = findViewById(R.id.episodeList);
         seekBar = findViewById(R.id.seekBar);
         volumeBar = findViewById(R.id.volumeBar);
@@ -840,12 +819,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                 pendingAutoPlay = true;
                 setStatus("Motore audio in avvio…", true);
             }
-        });
-
-        searchBox.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { applyFilter(); }
-            @Override public void afterTextChanged(Editable s) {}
         });
 
         updateFavoritesFilterButton();
@@ -1037,23 +1010,13 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     private void applyFilter() {
-        String q = searchBox.getText().toString().trim().toLowerCase(Locale.ITALY);
         visibleEpisodes.clear();
 
         for (Episode e : allEpisodes) {
             if (favoritesOnly && !isFavorite(e)) continue;
             if (unlistenedOnly && isListened(e)) continue;
 
-            String hay = (
-                    e.title + " "
-                            + e.description + " "
-                            + e.dateDisplay + " "
-                            + e.dateIso
-            ).toLowerCase(Locale.ITALY);
-
-            if (q.isEmpty() || hay.contains(q)) {
-                visibleEpisodes.add(e);
-            }
+            visibleEpisodes.add(e);
         }
 
         adapter.setItems(visibleEpisodes);
@@ -1078,13 +1041,11 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             countText.setText(
                     visibleEpisodes.size()
                             + filterLabel
-                            + (q.isEmpty() ? "" : " trovate")
             );
         } else {
             countText.setText(
                     visibleEpisodes.size()
                             + " puntate"
-                            + (q.isEmpty() ? "" : " trovate")
                             + "  ·  "
                             + favoriteCount
                             + (favoriteCount == 1 ? " preferita" : " preferite")
@@ -1600,11 +1561,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         outState.putString(
                 "selected_episode_id",
                 selectedEpisode != null ? selectedEpisode.id : ""
-        );
-
-        outState.putString(
-                "search_query",
-                searchBox != null ? searchBox.getText().toString() : ""
         );
 
         outState.putInt(

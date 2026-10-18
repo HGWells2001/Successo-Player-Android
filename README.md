@@ -4,7 +4,13 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.0 – Rai Radio 1 automatica alle 05:35**
+**v4.1 – Interfaccia senza barra di ricerca**
+
+## Novità della v4.1
+
+- Rimossa la barra di ricerca delle puntate per lasciare più spazio al catalogo.
+- Conservati i filtri **Preferite** e **Non ascoltate**, combinabili tra loro, con preferiti, dati e download esistenti.
+- Restano la diretta automatica di Rai Radio 1, i 2.253 proverbi offline e il sistema di aggiornamenti con firma stabile.
 
 ## Novità della v4.0
 
@@ -45,7 +51,7 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 - preferiti ★;
 - indicatore **✓ Ascoltata** sulle puntate completate;
 - filtro **Non ascoltate** per mostrare soltanto le puntate ancora da ascoltare;
-- filtro **Preferite**, filtro **Non ascoltate** e ricerca combinabili;
+- filtri **Preferite** e **Non ascoltate** combinabili;
 - modalità **Shuffle** con riproduzione casuale continua;
 - riproduzione automatica della puntata successiva con Shuffle disattivato;
 - notifica delle nuove puntate;
@@ -82,8 +88,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.0`
-- Version code base: `4000`
+- Versione: `4.1`
+- Version code base: `4100`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

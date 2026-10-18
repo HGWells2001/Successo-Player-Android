@@ -18,3 +18,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - Per configurare la firma: windows-builder/CONFIGURA_FIRMA_GITHUB.ps1
 
 - v4.0: ascolto automatico opzionale Rai Radio 1 05:35-06:00 lunedi-venerdi; firma permanente
+
+- v4.1: barra di ricerca rimossa; filtri Preferite/Non ascoltate intatti, firma APK persistente.

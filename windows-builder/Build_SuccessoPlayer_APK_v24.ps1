@@ -1,7 +1,7 @@
 ﻿param(
     [string]$ProjectZip = "",
     [string]$ProjectDir = "",
-    [string]$VersionName = "4.0"
+    [string]$VersionName = "4.1"
 )
 
 $ErrorActionPreference = "Stop"

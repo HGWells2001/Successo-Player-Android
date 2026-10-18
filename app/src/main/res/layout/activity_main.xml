@@ -97,19 +97,6 @@
             android:text="Orario italiano. Richiede Internet e permesso sveglie esatte." />
     </LinearLayout>
 
-    <EditText
-        android:id="@+id/searchBox"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/search_bg"
-        android:hint="Cerca titolo, data o descrizione"
-        android:inputType="text"
-        android:singleLine="true"
-        android:textColor="@color/textPrimary"
-        android:textColorHint="@color/textHint"
-        android:textSize="15sp" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
