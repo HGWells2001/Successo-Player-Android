@@ -25,7 +25,7 @@ if (-not $keytool) {
     $found = Get-ChildItem $jdkDir -Recurse -Filter keytool.exe -File -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -like '*\bin\keytool.exe' } |
         Select-Object -First 1
-    if ($found) { $keytool = $found }
+    if ($found) { $keytool = @{ Source = $found.FullName } }
 }
 if (-not $keytool) {
     $studio = Join-Path $env:ProgramFiles "Android\Android Studio\jbr\bin\keytool.exe"
