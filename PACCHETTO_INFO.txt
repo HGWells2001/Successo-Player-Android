@@ -34,3 +34,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v4.7: Diretta programma è un pulsante a due stati con palette e angoli coordinati ai pulsanti adiacenti, logica della diretta invariata.
 
 - v4.8: pulsanti download/cartella/diretta direttamente affiancati su una riga uniforme di 48dp; orario sotto la riga.
+
+- v4.9: scroll automatico della lista sulla puntata scelta dallo Shuffle, evidenziazione persistente e gestione dei filtri.

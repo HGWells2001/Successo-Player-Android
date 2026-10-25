@@ -1,6 +1,7 @@
 package it.successoplayer.app;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ public final class EpisodeAdapter extends BaseAdapter {
     private final LayoutInflater inflater;
     private final FavoriteHandler favoriteHandler;
     private final List<Episode> items = new ArrayList<>();
+    private String selectedEpisodeId = "";
 
     public EpisodeAdapter(Context context, FavoriteHandler favoriteHandler) {
         inflater = LayoutInflater.from(context);
@@ -29,6 +31,14 @@ public final class EpisodeAdapter extends BaseAdapter {
     public void setItems(List<Episode> episodes) {
         items.clear();
         if (episodes != null) items.addAll(episodes);
+        notifyDataSetChanged();
+    }
+
+    /** Evidenziamo la traccia anche dopo il riciclo delle righe. */
+    public void setSelectedEpisodeId(String id) {
+        String next = id == null ? "" : id;
+        if (next.equals(selectedEpisodeId)) return;
+        selectedEpisodeId = next;
         notifyDataSetChanged();
     }
 
@@ -52,7 +62,10 @@ public final class EpisodeAdapter extends BaseAdapter {
         }
 
         Episode e = items.get(position);
-
+        boolean selected = e.id != null && e.id.equals(selectedEpisodeId);
+        convertView.setBackgroundResource(
+                selected ? R.drawable.episode_selected_bg : R.color.panel);
+        h.title.setTypeface(null, selected ? Typeface.BOLD : Typeface.NORMAL);
         h.title.setText(e.title);
 
         String meta = e.dateDisplay;

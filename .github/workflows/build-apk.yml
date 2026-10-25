@@ -108,9 +108,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # Il codice 4800 e' riservato alla v4.8: tutte le build online sono successive.
-          code = 4800 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 4700 and code < 2100000000
+          # Il codice 4900 e' riservato alla v4.9: tutte le build online sono successive.
+          code = 4900 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 4800 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
@@ -151,6 +151,10 @@ jobs:
       - name: Verifica pulsante a due stati per la diretta
         shell: bash
         run: python3 tools/check_styled_live_button.py
+
+      - name: Verifica scroll automatico Shuffle
+        shell: bash
+        run: python3 tools/check_shuffle_scroll.py
 
       - name: Compila release (non firmata)
         shell: bash

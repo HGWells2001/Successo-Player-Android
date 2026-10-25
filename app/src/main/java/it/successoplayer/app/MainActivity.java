@@ -318,6 +318,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             Episode canonical = findEpisodeById(active.id);
 
             selectedEpisode = canonical != null ? canonical : active;
+            revealShuffleSelectionIfHidden();
             selectedVisibleIndex = indexOfVisible(selectedEpisode);
 
             updateSelectedUi(false);
@@ -972,6 +973,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         }
 
         synchronizePlaybackService();
+        if (shuffleEnabled) {
+            revealShuffleSelectionIfHidden();
+            scrollToShuffleSelection();
+        }
 
         setStatus(status, false);
     }
@@ -1174,6 +1179,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         if (episode == null) return;
 
         selectedEpisode = episode;
+        revealShuffleSelectionIfHidden();
         selectedVisibleIndex = indexOfVisible(episode);
         knownDurationMs = episode.durationMs;
 
@@ -1182,7 +1188,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         totalTime.setText(formatTime(knownDurationMs));
         updateSelectedUi(true);
 
-        if (selectedVisibleIndex >= 0) {
+        if (shuffleEnabled) {
+            scrollToShuffleSelection();
+        } else if (selectedVisibleIndex >= 0) {
             episodeList.setSelection(Math.max(0, selectedVisibleIndex - 2));
         }
 
@@ -1193,6 +1201,45 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             pendingAutoPlay = true;
             setStatus("Motore audio in avvio…", true);
         }
+    }
+
+    /**
+     * Se i filtri nascondono la puntata scelta dallo Shuffle, disattivali:
+     * l'episodio deve essere raggiungibile nello stesso elenco visibile.
+     */
+    private void revealShuffleSelectionIfHidden() {
+        if (!shuffleEnabled || !catalogLoaded || selectedEpisode == null) return;
+        if (indexOfVisible(selectedEpisode) >= 0) return;
+        if (!favoritesOnly && !unlistenedOnly) return;
+
+        favoritesOnly = false;
+        unlistenedOnly = false;
+        prefs.edit()
+                .putBoolean("favorites_only", false)
+                .putBoolean("unlistened_only", false)
+                .apply();
+        applyFilter();
+        toast("Filtri disattivati per mostrare la puntata Shuffle");
+    }
+
+    /**
+     * La selezione puo' arrivare dal servizio mentre l'app non e' visibile.
+     * Attendere il layout, poi posizionare la traccia nello spazio visibile.
+     * Un vecchio callback non deve scorrere su una traccia ormai sostituita.
+     */
+    private void scrollToShuffleSelection() {
+        if (!shuffleEnabled || !catalogLoaded || selectedEpisode == null
+                || selectedEpisode.id == null || episodeList == null) return;
+        final String expectedId = selectedEpisode.id;
+        episodeList.post(() -> {
+            if (destroyed || !activityStarted || !shuffleEnabled
+                    || selectedEpisode == null
+                    || !expectedId.equals(selectedEpisode.id)) return;
+            int index = indexOfVisible(selectedEpisode);
+            if (index < 0) return;
+            selectedVisibleIndex = index;
+            episodeList.setSelectionFromTop(index, Math.max(0, episodeList.getHeight() / 3));
+        });
     }
 
     private int indexOfVisible(Episode ep) {
@@ -1223,6 +1270,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
     private void updateSelectedUi(boolean freshSelection) {
         if (selectedEpisode == null) return;
+        if (adapter != null) adapter.setSelectedEpisodeId(selectedEpisode.id);
         selectedTitle.setText(selectedEpisode.title);
         String meta = selectedEpisode.dateDisplay
                 + (selectedEpisode.durationMs > 0 ? "  ·  " + formatTime(selectedEpisode.durationMs) : "");
@@ -1492,8 +1540,11 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             if (episode == null) return;
             selectedEpisode = episode;
             pendingRestoreEpisodeId = episode.id == null ? "" : episode.id;
+            revealShuffleSelectionIfHidden();
             selectedVisibleIndex = indexOfVisible(episode);
             updateSelectedUi(false);
+            // Anche i cambi casuali da fine puntata, cuffie e lockscreen.
+            if (shuffleEnabled) scrollToShuffleSelection();
         });
     }
 
