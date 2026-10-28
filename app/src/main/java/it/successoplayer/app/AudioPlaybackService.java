@@ -79,6 +79,7 @@ public final class AudioPlaybackService extends Service {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final AtomicInteger generation = new AtomicInteger();
     private final ShuffleCycle shuffleCycle = new ShuffleCycle(new Random());
+    private final SleepTimer sleepTimer = new SleepTimer();
 
     private final List<Episode> queue = new ArrayList<>();
     private final PlaybackQueue upNext = new PlaybackQueue();
@@ -111,6 +112,11 @@ public final class AudioPlaybackService extends Service {
 
     private final Runnable ticker = new Runnable() {
         @Override public void run() {
+            // Playback is a foreground service: this keeps running with the
+            // screen locked and while MainActivity is not visible.
+            if (sleepTimer.isDue(SystemClock.elapsedRealtime())) {
+                expireSleepTimer();
+            }
             if (player != null && prepared) {
                 try {
                     int position = player.getCurrentPosition();
@@ -356,6 +362,56 @@ public final class AudioPlaybackService extends Service {
         return null;
     }
 
+    /** Configure a time-based sleep timer, irrespective of Shuffle or Next Up. */
+    public void startSleepTimer(int minutes) {
+        sleepTimer.startMinutes(minutes, SystemClock.elapsedRealtime());
+        notifyStatus("Timer sonno attivo: " + minutes + " minuti", false);
+    }
+
+    /** At episode completion, do not advance to Shuffle or queued episodes. */
+    public boolean sleepAfterCurrentEpisode() {
+        if (currentEpisode == null || currentEpisode.id == null) return false;
+        boolean ok = sleepTimer.finishAtEnd(currentEpisode.id);
+        if (ok) notifyStatus("Timer sonno: arresto alla fine della puntata", false);
+        return ok;
+    }
+
+    public void cancelSleepTimer() {
+        sleepTimer.cancel();
+        notifyStatus("Timer sonno disattivato", false);
+    }
+
+    public boolean isSleepTimerActive() {
+        return sleepTimer.isActive();
+    }
+
+    public boolean isSleepTimerUntilEpisodeEnd() {
+        return sleepTimer.isEndOfEpisode();
+    }
+
+    public long getSleepTimerRemainingMs() {
+        return sleepTimer.remainingMs(SystemClock.elapsedRealtime());
+    }
+
+    private void expireSleepTimer() {
+        if (!sleepTimer.isDue(SystemClock.elapsedRealtime())) return;
+        sleepTimer.cancel();
+        if (player != null && prepared && isPlaying()) {
+            // Pause preserves the listening bookmark for a future return.
+            pause();
+        } else if (currentEpisode != null && !prepared) {
+            // Cancel asynchronous preparation, so it cannot start playback
+            // once the timer has already expired.
+            generation.incrementAndGet();
+            releasePlayer();
+            persistSessionNow(getCurrentPositionMs(), getCurrentDurationMs(), false);
+            notifyPlayback();
+            updateMediaSessionState();
+            if (startedForPlayback) updateNotification(false);
+        }
+        notifyStatus("Timer sonno terminato · riproduzione in pausa", false);
+    }
+
     public void setShuffleEnabled(boolean enabled) {
         shuffleEnabled = enabled;
         updateMediaSessionState();
@@ -389,6 +445,8 @@ public final class AudioPlaybackService extends Service {
 
         currentEpisode = episode;
         downloadedAudioUri = null;
+        // "At end of episode" belongs only to the episode selected when set.
+        sleepTimer.cancelIfDifferentEpisode(episode == null ? null : episode.id);
         if (shuffleEnabled && episode != null
                 && shuffleCycle.markPlayed(episode.id)) saveShuffleProgress();
         prepared = false;
@@ -692,9 +750,15 @@ public final class AudioPlaybackService extends Service {
                     listener.onPlaybackCompleted(completedEpisode);
                 }
 
-                // Facciamo uscire completamente il callback del MediaPlayer prima
-                // di sostituire il player con la puntata successiva.
-                main.post(() -> advanceAfterCompletion(completedEpisode));
+                if (sleepTimer.consumeEpisodeCompletion(
+                        completedEpisode == null ? null : completedEpisode.id)) {
+                    // Keep the last position and mark the episode listened.
+                    // Do not consume Next Up or trigger Shuffle auto-advance.
+                    notifyStatus("Timer sonno · fine puntata raggiunta", false);
+                } else {
+                    // Leave the MediaPlayer callback before replacing its source.
+                    main.post(() -> advanceAfterCompletion(completedEpisode));
+                }
             });
 
             player.setOnErrorListener((mp, what, extra) -> {
@@ -952,6 +1016,7 @@ public final class AudioPlaybackService extends Service {
      * conservare lo stato "in riproduzione" dopo l'uscita.
      */
     public void shutdownForAppExit() {
+        sleepTimer.cancel();
         final long position = getCurrentPositionMs();
         final long duration = getCurrentDurationMs();
         generation.incrementAndGet();
@@ -979,6 +1044,7 @@ public final class AudioPlaybackService extends Service {
     }
 
     public void stopPlayback() {
+        sleepTimer.cancel();
         long duration = getCurrentDurationMs();
 
         generation.incrementAndGet();
@@ -1460,6 +1526,7 @@ public final class AudioPlaybackService extends Service {
 
     @Override
     public void onDestroy() {
+        sleepTimer.cancel();
         main.removeCallbacks(ticker);
 
         // Se il servizio viene distrutto, nessuna riproduzione puo' continuare.

@@ -4,7 +4,17 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.17 – Ricerca rapida delle puntate**
+**v4.18 – Sleep Timer integrato nel motore audio**
+
+## Novità della v4.18
+
+- Aggiunto il piccolo pulsante **☾** ai controlli del player per programmare lo **Sleep Timer** con 15, 30, 45, 60 o 90 minuti.
+- È disponibile anche **Alla fine della puntata**: il lettore non avvia la coda successiva né un nuovo episodio Shuffle dopo la fine della puntata in ascolto.
+- Il timer viene gestito direttamente dal **servizio di riproduzione**, usando un orologio monotono. Continua a funzionare durante la riproduzione in background e con schermo bloccato, senza richiedere che l'Activity sia visibile.
+- Alla scadenza il servizio mette **in pausa**, mantenendo il segnalibro dell'episodio. Se la riproduzione è ancora in preparazione, annulla l'avvio asincrono per evitare che l'audio parta dopo la scadenza.
+- L'icona mostra il tempo residuo oppure **☾ Fine**. Dal menu puoi cambiare la durata o disattivare lo Sleep Timer.
+- Se passi manualmente a un altro episodio, il timer impostato su **fine puntata** viene annullato; quelli in minuti rimangono attivi.
+- La chiusura esplicita dell'app e il comando Stop annullano il timer. Non è necessaria alcuna nuova autorizzazione Android.
 
 ## Novità della v4.17
 
@@ -224,8 +234,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.17`
-- Version code base: `41700`
+- Versione: `4.18`
+- Version code base: `41800`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

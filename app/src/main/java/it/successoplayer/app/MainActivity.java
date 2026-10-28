@@ -87,6 +87,14 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
+    private final Handler sleepTimerUiHandler = new Handler(Looper.getMainLooper());
+    private final Runnable sleepTimerUiTick = new Runnable() {
+        @Override public void run() {
+            if (destroyed || !activityStarted) return;
+            refreshSleepTimerButton();
+            sleepTimerUiHandler.postDelayed(this, 15_000L);
+        }
+    };
     private final List<Episode> allEpisodes = new ArrayList<>();
     private final List<Episode> visibleEpisodes = new ArrayList<>();
 
@@ -129,7 +137,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private Button searchButton, clearSearchButton;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, upNextButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, upNextButton, sleepTimerButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private ToggleButton liveAutoSwitch;
     private TextView liveScheduleHint;
@@ -158,6 +166,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
             synchronizePlaybackService();
             refreshUpNextButton();
+            refreshSleepTimerButton();
         }
 
         @Override
@@ -269,6 +278,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         super.onStart();
 
         activityStarted = true;
+        sleepTimerUiHandler.removeCallbacks(sleepTimerUiTick);
+        sleepTimerUiHandler.post(sleepTimerUiTick);
         apkUpdateDownloader.onStart();
         // Verifica aggiornamenti a ogni nuovo accesso, anche dal background.
         UpdateChecker.check(this, prefs, false);
@@ -745,6 +756,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         nextButton = findViewById(R.id.nextButton);
         shuffleButton = findViewById(R.id.shuffleButton);
         upNextButton = findViewById(R.id.upNextButton);
+        sleepTimerButton = findViewById(R.id.sleepTimerButton);
         rewindButton = findViewById(R.id.rewindButton);
         forwardButton = findViewById(R.id.forwardButton);
         downloadButton = findViewById(R.id.downloadButton);
@@ -903,6 +915,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         upNextButton.setOnClickListener(v -> showUpNextQueue());
         refreshUpNextButton();
+        sleepTimerButton.setOnClickListener(v -> showSleepTimerOptions());
+        refreshSleepTimerButton();
 
         updateShuffleButton();
         shuffleButton.setOnClickListener(v -> {
@@ -1219,6 +1233,63 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             unlistenedFilterButton.setTextColor(
                     getResources().getColor(R.color.textPrimary, getTheme())
             );
+        }
+    }
+
+    private void showSleepTimerOptions() {
+        if (!bound || service == null) {
+            toast("Motore audio non ancora pronto.");
+            return;
+        }
+        boolean active = service.isSleepTimerActive();
+        String[] choices = active
+                ? new String[]{"15 minuti", "30 minuti", "45 minuti",
+                        "60 minuti", "90 minuti", "Alla fine della puntata",
+                        "Disattiva timer"}
+                : new String[]{"15 minuti", "30 minuti", "45 minuti",
+                        "60 minuti", "90 minuti", "Alla fine della puntata"};
+        String title = "Timer sonno";
+        if (service.isSleepTimerUntilEpisodeEnd()) {
+            title += " · fine puntata";
+        } else if (service.isSleepTimerActive()) {
+            long remaining = service.getSleepTimerRemainingMs();
+            title += " · " + (Math.max(0L, remaining) + 59999L) / 60000L + " min";
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setItems(choices, (dialog, index) -> {
+                    if (index < 5) {
+                        int[] minutes = {15, 30, 45, 60, 90};
+                        service.startSleepTimer(minutes[index]);
+                    } else if (index == 5) {
+                        if (!service.sleepAfterCurrentEpisode()) {
+                            toast("Seleziona prima una puntata.");
+                        }
+                    } else {
+                        service.cancelSleepTimer();
+                    }
+                    refreshSleepTimerButton();
+                })
+                .setNegativeButton("Chiudi", null)
+                .show();
+    }
+
+    private void refreshSleepTimerButton() {
+        if (sleepTimerButton == null) return;
+        if (!bound || service == null || !service.isSleepTimerActive()) {
+            sleepTimerButton.setText("☾");
+            sleepTimerButton.setContentDescription("Imposta timer sonno");
+            return;
+        }
+        if (service.isSleepTimerUntilEpisodeEnd()) {
+            sleepTimerButton.setText("☾ Fine");
+            sleepTimerButton.setContentDescription("Timer sonno attivo fino alla fine della puntata");
+        } else {
+            long ms = service.getSleepTimerRemainingMs();
+            long minutes = Math.max(1L, (ms + 59_999L) / 60_000L);
+            sleepTimerButton.setText("☾ " + minutes + "m");
+            sleepTimerButton.setContentDescription(
+                    "Timer sonno attivo, circa " + minutes + " minuti rimanenti");
         }
     }
 
@@ -1800,7 +1871,12 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         return String.format(Locale.ITALY, "%d:%02d", m, s);
     }
 
-    @Override public void onStatus(String text, boolean busy) { postUi(() -> setStatus(text, busy)); }
+    @Override public void onStatus(String text, boolean busy) {
+        postUi(() -> {
+            setStatus(text, busy);
+            refreshSleepTimerButton();
+        });
+    }
 
     @Override public void onPlaybackState(boolean playing, boolean prepared) {
         postUi(() -> playButton.setText(playing ? "❚❚" : "▶"));
@@ -1826,6 +1902,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             selectedVisibleIndex = indexOfVisible(episode);
             updateSelectedUi(false);
             refreshUpNextButton();
+            refreshSleepTimerButton();
             // Include la coda esplicita e le transizioni da cuffie/lockscreen.
             if (shuffleEnabled) scrollToShuffleSelection();
             else if (selectedVisibleIndex >= 0) {
@@ -1911,6 +1988,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     @Override
     protected void onStop() {
         activityStarted = false;
+        sleepTimerUiHandler.removeCallbacks(sleepTimerUiTick);
         apkUpdateDownloader.onStop();
 
         persistUiState();
@@ -1985,6 +2063,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         themeHandler.removeCallbacksAndMessages(null);
         downloadHandler.removeCallbacksAndMessages(null);
         searchHandler.removeCallbacksAndMessages(null);
+        sleepTimerUiHandler.removeCallbacksAndMessages(null);
 
         unbindPlaybackService();
 

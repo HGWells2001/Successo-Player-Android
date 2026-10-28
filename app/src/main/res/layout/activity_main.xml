@@ -309,6 +309,20 @@
                     android:textSize="20sp"
                     android:contentDescription="Gestisci coda di riproduzione" />
 
+                <Button
+                    android:id="@+id/sleepTimerButton"
+                    style="@style/ControlButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginLeft="5dp"
+                    android:minWidth="48dp"
+                    android:minHeight="0dp"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:text="☾"
+                    android:textSize="20sp"
+                    android:contentDescription="Imposta timer sonno" />
+
                 <Spinner
                     android:id="@+id/speedSpinner"
                     android:layout_width="110dp"

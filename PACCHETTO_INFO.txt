@@ -52,3 +52,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v4.16: coda manuale persistente, riordino, riproduci prossimo, precedenza su shuffle e avanzamento automatico in background.
 
 - v4.17: ricerca rapida per titolo, descrizione, data e numero, filtri combinati, Shuffle limitato ai risultati e interfaccia compatta.
+
+- v4.18: Sleep Timer 15/30/45/60/90 min o fino a fine episodio, servizio background, pausa con segnalibro, annullamento e indicatore residuo.
