@@ -4,7 +4,16 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.9 – Shuffle segue la puntata nella lista**
+**v4.10 – Shuffle intelligente senza ripetizioni**
+
+## Novità della v4.10
+
+- **Shuffle senza ripetizioni**: ogni puntata del gruppo disponibile viene scelta una volta prima dell'inizio di un nuovo ciclo; il primo episodio di un nuovo ciclo non coincide con l'ultimo di quello precedente quando esistono alternative.
+- **Filtri rispettati**: con Preferite o Non ascoltate attivi, lo Shuffle sceglie esclusivamente tra le puntate visibili, senza disattivare i filtri.
+- Lo stesso ordine casuale senza ripetizioni è condiviso tra il pulsante Shuffle, la fine automatica della puntata, i comandi Bluetooth e la schermata di blocco.
+- I progressi dello Shuffle vengono conservati nelle preferenze Android, così un riavvio dell'app non azzera il ciclo quando il gruppo di puntate è rimasto invariato.
+- Se cambia l'insieme delle puntate ammesse dai filtri, comincia un nuovo ciclo limitato a quel gruppo. Un filtro vuoto non avvia nuove puntate.
+- Rimane lo scroll automatico sulla puntata casuale e la sua evidenziazione. I normali cambi di episodio e il comportamento della pausa non sono stati modificati.
 
 ## Novità della v4.9
 
@@ -149,8 +158,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.9`
-- Version code base: `4900`
+- Versione: `4.10`
+- Version code base: `41000`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

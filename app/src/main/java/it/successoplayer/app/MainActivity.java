@@ -309,7 +309,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         service.setShuffleEnabled(shuffleEnabled);
 
         if (catalogLoaded) {
-            service.setQueue(allEpisodes, shuffleEnabled);
+            service.setQueue(
+                    shuffleEnabled ? visibleEpisodes : allEpisodes, shuffleEnabled);
         }
 
         Episode active = service.getCurrentEpisode();
@@ -318,7 +319,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             Episode canonical = findEpisodeById(active.id);
 
             selectedEpisode = canonical != null ? canonical : active;
-            revealShuffleSelectionIfHidden();
             selectedVisibleIndex = indexOfVisible(selectedEpisode);
 
             updateSelectedUi(false);
@@ -844,6 +844,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
             if (bound && service != null) {
                 service.setShuffleEnabled(shuffleEnabled);
+                service.setQueue(
+                        shuffleEnabled ? visibleEpisodes : allEpisodes, shuffleEnabled);
             }
 
             if (shuffleEnabled) {
@@ -973,10 +975,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         }
 
         synchronizePlaybackService();
-        if (shuffleEnabled) {
-            revealShuffleSelectionIfHidden();
-            scrollToShuffleSelection();
-        }
+        if (shuffleEnabled) scrollToShuffleSelection();
 
         setStatus(status, false);
     }
@@ -1030,6 +1029,12 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         selectedVisibleIndex = indexOfVisible(selectedEpisode);
         updateFavoritesFilterButton();
         updateUnlistenedFilterButton();
+        // Keep the service's shuffle pool identical to the filtered list.
+        // Changing a filter never restarts the player or clears the filter.
+        if (bound && service != null && catalogLoaded) {
+            service.setQueue(
+                    shuffleEnabled ? visibleEpisodes : allEpisodes, shuffleEnabled);
+        }
     }
 
     private boolean isFavorite(Episode episode) {
@@ -1124,35 +1129,29 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     private Episode randomEpisodeExcluding(Episode excluded) {
-        if (allEpisodes.isEmpty()) return null;
-        if (allEpisodes.size() == 1) return allEpisodes.get(0);
-
-        int excludedIndex = -1;
-        if (excluded != null) {
-            for (int i = 0; i < allEpisodes.size(); i++) {
-                if (allEpisodes.get(i).id.equals(excluded.id)) {
-                    excludedIndex = i;
-                    break;
-                }
-            }
-        }
-
-        int pick = random.nextInt(allEpisodes.size() - (excludedIndex >= 0 ? 1 : 0));
-
-        if (excludedIndex >= 0 && pick >= excludedIndex) {
-            pick++;
-        }
-
-        return allEpisodes.get(pick);
+        if (visibleEpisodes.isEmpty()) return null;
+        if (visibleEpisodes.size() == 1) return visibleEpisodes.get(0);
+        // Only used while waiting for the service to bind. The service owns
+        // the cycle once connected and records this first episode on select.
+        int excludedIndex = indexOfVisible(excluded);
+        int pick = random.nextInt(
+                visibleEpisodes.size() - (excludedIndex >= 0 ? 1 : 0));
+        if (excludedIndex >= 0 && pick >= excludedIndex) pick++;
+        return visibleEpisodes.get(pick);
     }
 
     private void playRandomEpisode(boolean showToast) {
-        if (allEpisodes.isEmpty()) {
+        if (!catalogLoaded) {
             toast("Catalogo non ancora disponibile.");
             return;
         }
-
-        Episode randomEpisode = randomEpisodeExcluding(selectedEpisode);
+        if (visibleEpisodes.isEmpty()) {
+            toast("Nessuna puntata compatibile con i filtri selezionati.");
+            return;
+        }
+        Episode randomEpisode = bound && service != null
+                ? service.pickNextShuffleEpisode(selectedEpisode)
+                : randomEpisodeExcluding(selectedEpisode);
         if (randomEpisode == null) return;
 
         playEpisodeFromAutoMode(randomEpisode);
@@ -1179,7 +1178,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         if (episode == null) return;
 
         selectedEpisode = episode;
-        revealShuffleSelectionIfHidden();
         selectedVisibleIndex = indexOfVisible(episode);
         knownDurationMs = episode.durationMs;
 
@@ -1201,25 +1199,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             pendingAutoPlay = true;
             setStatus("Motore audio in avvio…", true);
         }
-    }
-
-    /**
-     * Se i filtri nascondono la puntata scelta dallo Shuffle, disattivali:
-     * l'episodio deve essere raggiungibile nello stesso elenco visibile.
-     */
-    private void revealShuffleSelectionIfHidden() {
-        if (!shuffleEnabled || !catalogLoaded || selectedEpisode == null) return;
-        if (indexOfVisible(selectedEpisode) >= 0) return;
-        if (!favoritesOnly && !unlistenedOnly) return;
-
-        favoritesOnly = false;
-        unlistenedOnly = false;
-        prefs.edit()
-                .putBoolean("favorites_only", false)
-                .putBoolean("unlistened_only", false)
-                .apply();
-        applyFilter();
-        toast("Filtri disattivati per mostrare la puntata Shuffle");
     }
 
     /**
@@ -1540,7 +1519,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             if (episode == null) return;
             selectedEpisode = episode;
             pendingRestoreEpisodeId = episode.id == null ? "" : episode.id;
-            revealShuffleSelectionIfHidden();
             selectedVisibleIndex = indexOfVisible(episode);
             updateSelectedUi(false);
             // Anche i cambi casuali da fine puntata, cuffie e lockscreen.

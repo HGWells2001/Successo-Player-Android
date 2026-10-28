@@ -14,14 +14,13 @@ assert "episodeList.setSelectionFromTop(index," in main
 assert "expectedId.equals(selectedEpisode.id)" in main
 callback=main[main.index("@Override public void onEpisode(Episode episode) {"):]
 callback=callback[:callback.index("@Override public void onListenedChanged(")]
-assert "revealShuffleSelectionIfHidden();" in callback
 assert "if (shuffleEnabled) scrollToShuffleSelection();" in callback
 auto=main[main.index("private void playEpisodeFromAutoMode(Episode episode) {"):]
 auto=auto[:auto.index("private void revealShuffleSelectionIfHidden()")]
-assert "revealShuffleSelectionIfHidden();" in auto and "scrollToShuffleSelection();" in auto
-assert "favoritesOnly = false;" in main and "unlistenedOnly = false;" in main
-assert 'putBoolean("favorites_only", false)' in main
-assert 'putBoolean("unlistened_only", false)' in main
+assert "scrollToShuffleSelection();" in auto
+assert "revealShuffleSelectionIfHidden()" not in main
+assert 'service.setQueue(' in main
+assert 'shuffleEnabled ? visibleEpisodes : allEpisodes' in main
 assert "adapter.setSelectedEpisodeId(selectedEpisode.id);" in main
 assert "setSelectedEpisodeId(String id)" in adapter
 assert "selected ? R.drawable.episode_selected_bg : R.color.panel" in adapter

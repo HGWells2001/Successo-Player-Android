@@ -36,3 +36,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v4.8: pulsanti download/cartella/diretta direttamente affiancati su una riga uniforme di 48dp; orario sotto la riga.
 
 - v4.9: scroll automatico della lista sulla puntata scelta dallo Shuffle, evidenziazione persistente e gestione dei filtri.
+
+- v4.10: Shuffle senza ripetizioni finché il gruppo non è esaurito; rispetta Preferite/Non ascoltate, conserva progressi e funzionamento in background.

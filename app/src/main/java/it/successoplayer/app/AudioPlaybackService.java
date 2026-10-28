@@ -54,6 +54,8 @@ public final class AudioPlaybackService extends Service {
     private static final String KEY_SESSION_DURATION = "session_duration_ms";
     private static final String KEY_SESSION_WAS_PLAYING = "session_was_playing";
     private static final String KEY_SESSION_SAVED_AT = "session_saved_at";
+    private static final String KEY_SHUFFLE_POOL = "shuffle_pool_episode_ids";
+    private static final String KEY_SHUFFLE_PLAYED = "shuffle_played_episode_ids";
 
     private static final String CHANNEL_ID = "successo_playback";
     private static final int NOTIFICATION_ID = 2407;
@@ -70,7 +72,7 @@ public final class AudioPlaybackService extends Service {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final AtomicInteger generation = new AtomicInteger();
-    private final Random random = new Random();
+    private final ShuffleCycle shuffleCycle = new ShuffleCycle(new Random());
 
     private final List<Episode> queue = new ArrayList<>();
     private final Set<String> listenedIds = new HashSet<>();
@@ -230,11 +232,45 @@ public final class AudioPlaybackService extends Service {
 
     public void setQueue(List<Episode> episodes, boolean shuffle) {
         queue.clear();
-        if (episodes != null) {
-            queue.addAll(episodes);
-        }
+        if (episodes != null) queue.addAll(episodes);
         shuffleEnabled = shuffle;
+        if (shuffleEnabled) {
+            List<String> ids = new ArrayList<>();
+            for (Episode episode : queue) {
+                if (episode != null && episode.id != null) ids.add(episode.id);
+            }
+            if (shuffleCycle.setPool(ids)) {
+                // Reuse progress after an app restart when filters/pool match.
+                if (shuffleCycle.getPoolIds().equals(
+                        prefs.getStringSet(KEY_SHUFFLE_POOL, Collections.emptySet()))) {
+                    shuffleCycle.restorePlayed(
+                            prefs.getStringSet(KEY_SHUFFLE_PLAYED, Collections.emptySet()));
+                }
+                saveShuffleProgress();
+            }
+        }
         updateMediaSessionState();
+    }
+
+    private void saveShuffleProgress() {
+        prefs.edit()
+                .putStringSet(KEY_SHUFFLE_POOL, shuffleCycle.getPoolIds())
+                .putStringSet(KEY_SHUFFLE_PLAYED, shuffleCycle.getPlayedIds())
+                .apply();
+    }
+
+    /**
+     * Called by the UI's initial Shuffle click and by background auto-advance.
+     * A single service owns the cycle, including media-button requests.
+     */
+    public Episode pickNextShuffleEpisode(Episode excluded) {
+        String id = shuffleCycle.next(excluded == null ? null : excluded.id);
+        if (id == null) return null;
+        saveShuffleProgress();
+        for (Episode episode : queue) {
+            if (episode != null && id.equals(episode.id)) return episode;
+        }
+        return null;
     }
 
     public void setShuffleEnabled(boolean enabled) {
@@ -247,6 +283,8 @@ public final class AudioPlaybackService extends Service {
         releasePlayer();
 
         currentEpisode = episode;
+        if (shuffleEnabled && episode != null
+                && shuffleCycle.markPlayed(episode.id)) saveShuffleProgress();
         prepared = false;
         fallbackTried = false;
         pendingResumeMs = 0L;
@@ -630,7 +668,7 @@ public final class AudioPlaybackService extends Service {
         if (currentEpisode == null || queue.isEmpty()) return;
 
         Episode next = shuffleEnabled
-                ? randomEpisodeExcluding(currentEpisode)
+                ? pickNextShuffleEpisode(currentEpisode)
                 : sequentialEpisodeAfter(currentEpisode);
 
         if (next == null) {
@@ -671,7 +709,7 @@ public final class AudioPlaybackService extends Service {
         }
 
         Episode next = shuffleEnabled
-                ? randomEpisodeExcluding(completedEpisode)
+                ? pickNextShuffleEpisode(completedEpisode)
                 : sequentialEpisodeAfter(completedEpisode);
 
         if (next == null) {
@@ -681,24 +719,6 @@ public final class AudioPlaybackService extends Service {
 
         selectEpisode(next);
         prepareAndPlay();
-    }
-
-    private Episode randomEpisodeExcluding(Episode excluded) {
-        if (queue.isEmpty()) return null;
-        if (queue.size() == 1) return queue.get(0);
-
-        int excludedIndex = indexOfQueue(excluded);
-
-        int available = queue.size() - (excludedIndex >= 0 ? 1 : 0);
-        if (available <= 0) return null;
-
-        int pick = random.nextInt(available);
-
-        if (excludedIndex >= 0 && pick >= excludedIndex) {
-            pick++;
-        }
-
-        return queue.get(pick);
     }
 
     private Episode sequentialEpisodeAfter(Episode current) {
