@@ -4,6 +4,21 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
+**v4.24 – Motore puntate Media3 / ExoPlayer**
+
+## Novità della v4.24
+
+- Migrazione incrementale del motore delle puntate da Android MediaPlayer a Media3/ExoPlayer 1.11.1. La diretta programmata rimane sul servizio separato per ridurre i rischi.
+- Mantiene la sessione media e i comandi della notifica, segnalibri per puntata, download offline, timer sonno, Shuffle e coda.
+- Media3 gestisce buffering e ritentativi HTTP; dopo un errore di rete definitivo sono disponibili al massimo tre tentativi aggiuntivi distanziati, con ripresa dalla posizione corrente.
+- Scollegare le cuffie o un dispositivo Bluetooth ferma la riproduzione per evitare audio inatteso dagli altoparlanti; la posizione viene salvata.
+- Il focus audio viene richiesto prima di avviare o riprendere l'episodio. Una chiamata non deve avviare audio se il focus è negato; la pausa durante il caricamento annulla i callback pendenti.
+- Il player mantiene il risveglio necessario al servizio in background usando il wake lock locale di Media3, senza nuovi permessi.
+- Test automatici aggiunti per le politiche di riconnessione, i confini di pausa e la migrazione API.
+- Nessuna modifica al certificato di firma, all'identità del pacchetto o ai dati precedenti.
+
+## Novità della v4.23
+
 **v4.23 – Diretta informativa integrata nel pulsante**
 
 ## Novità della v4.23

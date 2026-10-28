@@ -10,8 +10,8 @@ android {
         applicationId 'it.successoplayer.app'
         minSdk 26
         targetSdk 35
-        versionCode 42300
-        versionName '4.23'
+        versionCode 42400
+        versionName '4.24'
     }
 
     buildTypes {
@@ -25,4 +25,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+}
+
+dependencies {
+    // Stable Media3 1.11.1; maintain the existing Android MediaSession and UI.
+    implementation 'androidx.media3:media3-exoplayer:1.11.1'
 }

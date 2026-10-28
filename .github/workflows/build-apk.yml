@@ -110,9 +110,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # La base 42300 della v4.23 supera tutte le build 422xx già pubblicate.
-          code = 42300 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 42249 and code < 2100000000
+          # La base 42400 della v4.24 supera tutte le build 423xx già pubblicate.
+          code = 42400 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 42352 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
@@ -137,6 +137,10 @@ jobs:
       - name: Verifica nessuna ripresa automatica dopo Pausa
         shell: bash
         run: python3 tools/check_pause_persistence.py
+
+      - name: Verifica motore Media3, rete, Bluetooth e chiamate
+        shell: bash
+        run: python3 tools/check_media3_audio_engine.py
 
       - name: Verifica uscita completa e pulizia media
         shell: bash
@@ -271,6 +275,8 @@ jobs:
           APK Android firmato con la chiave permanente del progetto.
 
           - Posizione di ascolto indipendente per ciascuna puntata.
+          - Puntate su Media3/ExoPlayer 1.11.1, con riconnessioni limitate e ripresa dal segnalibro.
+          - Audio in pausa se cuffie/Bluetooth vengono scollegati, audio focus rispettato durante le chiamate.
           - Diretta compatta: countdown e connessione all'interno del pulsante da 48dp; nessuna riga aggiuntiva.
           - Controllo aggiornamenti a ogni accesso nel menu ⋮ in alto a destra.
           - Tasto Indietro chiude prima la ricerca, senza interrompere l'ascolto.

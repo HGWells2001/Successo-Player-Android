@@ -13,16 +13,13 @@ import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
-import android.media.PlaybackParams;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.PowerManager;
 import android.os.SystemClock;
 
 import java.io.File;
@@ -89,13 +86,14 @@ public final class AudioPlaybackService extends Service {
     private final Map<String, Episode> entireCatalog = new HashMap<>();
     private final Set<String> listenedIds = new HashSet<>();
 
-    private MediaPlayer player;
+    private Media3EpisodePlayer player;
     private Episode currentEpisode;
     private Listener listener;
     private SharedPreferences prefs;
 
     private boolean prepared;
     private boolean fallbackTried;
+    private int networkRetryAttempts;
     private boolean shuffleEnabled;
     private String downloadedAudioUri;
     private boolean startedForPlayback;
@@ -243,7 +241,8 @@ public final class AudioPlaybackService extends Service {
     public long getCurrentDurationMs() {
         if (player != null && prepared) {
             try {
-                return Math.max(0L, player.getDuration());
+                long actual = player.getDuration();
+                if (actual > 0L) return actual;
             } catch (Exception ignored) {}
         }
 
@@ -510,6 +509,7 @@ public final class AudioPlaybackService extends Service {
                 && shuffleCycle.markPlayed(episode.id)) saveShuffleProgress();
         prepared = false;
         fallbackTried = false;
+        networkRetryAttempts = 0;
         pendingResumeMs = nextPosition;
 
         persistSessionNow(nextPosition, episode != null ? episode.durationMs : 0L, false);
@@ -549,6 +549,7 @@ public final class AudioPlaybackService extends Service {
         downloadedAudioUri = null;
         prepared = false;
         fallbackTried = false;
+        networkRetryAttempts = 0;
 
         long max = episode.durationMs > 0 ? episode.durationMs : Long.MAX_VALUE;
         pendingResumeMs = Math.max(0L, Math.min(positionMs, max));
@@ -592,7 +593,19 @@ public final class AudioPlaybackService extends Service {
     }
 
     public void pause() {
-        if (player == null || !prepared) return;
+        if (player == null || !prepared) {
+            // An incoming call/pause during URL resolution or reconnection
+            // must cancel all pending callbacks: never auto-start afterwards.
+            if (currentEpisode != null && startedForPlayback) {
+                generation.incrementAndGet();
+                releasePlayer();
+                persistSessionNow(pendingResumeMs, getCurrentDurationMs(), false);
+                notifyPlayback();
+                updateMediaSessionState();
+                updateNotification(false);
+            }
+            return;
+        }
 
         try {
             player.pause();
@@ -675,6 +688,7 @@ public final class AudioPlaybackService extends Service {
 
         prepared = false;
         fallbackTried = false;
+        networkRetryAttempts = 0;
 
         persistSessionNow(
                 pendingResumeMs,
@@ -721,19 +735,17 @@ public final class AudioPlaybackService extends Service {
         releasePlayer();
 
         try {
-            player = new MediaPlayer();
-
-            player.setWakeMode(
-                    getApplicationContext(),
-                    PowerManager.PARTIAL_WAKE_LOCK
-            );
-
-            player.setAudioAttributes(
-                    new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_MEDIA)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                            .build()
-            );
+            player = new Media3EpisodePlayer(getApplicationContext());
+            player.setOnRouteInterruptedListener(mp -> {
+                if (generation.get() != token || player != mp) return;
+                // ExoPlayer pauses on a noisy output route change.
+                pendingResumeMs = getCurrentPositionMs();
+                persistSessionNow(pendingResumeMs, getCurrentDurationMs(), false);
+                notifyStatus("Uscita audio cambiata · riproduzione in pausa", false);
+                notifyPlayback();
+                updateMediaSessionState();
+                updateNotification(false);
+            });
 
             player.setOnPreparedListener(mp -> {
                 if (generation.get() != token) return;
@@ -741,7 +753,13 @@ public final class AudioPlaybackService extends Service {
                 prepared = true;
 
                 applyVolume(1f);
-                requestFocus();
+                if (!requestFocus()) {
+                    notifyStatus("Audio occupato da una chiamata o altra app · premi ▶ per riprovare", false);
+                    notifyPlayback();
+                    updateMediaSessionState();
+                    updateNotification(false);
+                    return;
+                }
 
                 long duration = 0L;
                 try {
@@ -763,8 +781,7 @@ public final class AudioPlaybackService extends Service {
 
                 try {
                     mp.start();
-                    // setPlaybackParams() puo' avviare un MediaPlayer in pausa.
-                    // Applichiamo la velocita' solo quando sta gia' suonando.
+                    recordPlayHistory();
                     applySpeed();
                 } catch (Exception ignored) {}
 
@@ -821,13 +838,32 @@ public final class AudioPlaybackService extends Service {
             });
 
             player.setOnErrorListener((mp, what, extra) -> {
+                if (generation.get() != token || player != mp) return true;
+                if (!localFile && AudioRecoveryPolicy.isNetworkError(what)) {
+                    long at = getCurrentPositionMs();
+                    pendingResumeMs = Math.max(0L, at);
+                    persistSessionNow(pendingResumeMs, getCurrentDurationMs(), false);
+                    long delay = AudioRecoveryPolicy.delayMs(networkRetryAttempts++);
+                    if (delay >= 0L) {
+                        prepared = false;
+                        notifyStatus("Rete instabile · riconnessione dalla posizione salvata…", true);
+                        main.postDelayed(() -> {
+                            if (generation.get() == token && currentEpisode != null
+                                    && player == mp) {
+                                openSource(source, false, token);
+                            }
+                        }, delay);
+                    } else {
+                        fail("Connessione interrotta. Posizione salvata: premi ▶ per riprovare.");
+                    }
+                    return true;
+                }
                 if (!localFile && !fallbackTried && currentEpisode != null) {
                     fallbackTried = true;
                     cacheFallback(currentEpisode, source, token);
                     return true;
                 }
-
-                fail("Il motore audio Android non riesce a riprodurre questa puntata.");
+                fail("Errore decodifica o file non riproducibile.");
                 return true;
             });
 
@@ -894,7 +930,10 @@ public final class AudioPlaybackService extends Service {
         if (player == null || !prepared) return;
 
         ensureStartedForPlayback();
-        requestFocus();
+        if (!requestFocus()) {
+            notifyStatus("Audio temporaneamente occupato · riprova dopo la chiamata", false);
+            return;
+        }
 
         try {
             player.start();
@@ -1005,16 +1044,10 @@ public final class AudioPlaybackService extends Service {
     }
 
     private void applySpeed() {
-        // Importante: MediaPlayer.setPlaybackParams puo' RIAVVIARE la riproduzione
-        // se chiamato su un MediaPlayer in pausa (es. al rientro nell'Activity).
-        // Memorizziamo la velocita' nel campo speed; la applichiamo quando parte.
-        if (player == null || !prepared || !isPlaying()) return;
-
+        // ExoPlayer applies speed without restarting an intentionally paused item.
+        if (player == null || !prepared) return;
         try {
-            PlaybackParams params = player.getPlaybackParams();
-            params.setSpeed(speed);
-            params.setPitch(1f);
-            player.setPlaybackParams(params);
+            player.setSpeed(speed);
         } catch (Exception ignored) {}
     }
 
@@ -1028,12 +1061,12 @@ public final class AudioPlaybackService extends Service {
         );
 
         try {
-            player.setVolume(volume, volume);
+            player.setVolume(volume);
         } catch (Exception ignored) {}
     }
 
-    private void requestFocus() {
-        if (audioManager == null) return;
+    private boolean requestFocus() {
+        if (audioManager == null) return false;
 
         if (focusRequest == null) {
             AudioAttributes attrs = new AudioAttributes.Builder()
@@ -1059,8 +1092,11 @@ public final class AudioPlaybackService extends Service {
         }
 
         try {
-            audioManager.requestAudioFocus(focusRequest);
-        } catch (Exception ignored) {}
+            return audioManager.requestAudioFocus(focusRequest)
+                    == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private void abandonFocus() {
