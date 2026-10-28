@@ -45,6 +45,8 @@ jobs:
 
   build-apk:
     name: APK firmato permanente
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -108,9 +110,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # Il codice 41000 e' riservato alla v4.10: tutte le build online sono successive.
-          code = 41000 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 4900 and code < 2100000000
+          # Il codice 41100 e' riservato alla v4.11: tutte le build online sono successive.
+          code = 41100 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 41000 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
@@ -160,6 +162,10 @@ jobs:
         shell: bash
         run: python3 tools/check_smart_shuffle.py
 
+      - name: Verifica ripresa per episodio e aggiornamenti GitHub
+        shell: bash
+        run: python3 tools/check_episode_resume_and_updates.py
+
       - name: Compila release (non firmata)
         shell: bash
         run: gradle --no-daemon --stacktrace :app:assembleRelease
@@ -207,3 +213,45 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
+
+      - name: Pubblica automaticamente su GitHub Releases
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="v${SUCCESSO_APK_VERSION}-build${SUCCESSO_APK_CODE}"
+          apk="release/SuccessoPlayer_Android_v${SUCCESSO_APK_VERSION}_build${SUCCESSO_APK_CODE}.apk"
+          test -s "$apk"
+          # Il nome fisso permette a tutti di usare /releases/latest/download/...
+          cp "$apk" release/SuccessoPlayer_Android_latest.apk
+          cat > release/RELEASE_NOTES.md <<EOF
+          # Successo Player Android v${SUCCESSO_APK_VERSION} (build ${SUCCESSO_APK_CODE})
+
+          APK Android firmato con la chiave permanente del progetto.
+
+          - Posizione di ascolto indipendente per ciascuna puntata.
+          - Ricerca di nuove versioni nell'app, su GitHub Releases.
+          - Pubblicazione automatica di ogni build firmata con link di download stabile.
+          - Installabile sopra la versione precedente senza eliminare dati.
+
+          Controlli: firma APK verificata e SHA-256 in allegato.
+
+          Progetto indipendente non ufficiale, non affiliato alla Rai.
+          EOF
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Un rerun dello stesso workflow non sovrascrive una release già pubblicata.
+            echo "La Release $tag esiste già; nessuna modifica agli allegati."
+          else
+            gh release create "$tag" \
+              "$apk" \
+              "release/SuccessoPlayer_Android_latest.apk" \
+              "release/SHA256.txt" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "Successo Player Android v${SUCCESSO_APK_VERSION} (build ${SUCCESSO_APK_CODE})" \
+              --notes-file release/RELEASE_NOTES.md \
+              --latest
+          fi
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json url,assets \
+            --jq '{url, assets: [.assets[].name]}'

@@ -116,7 +116,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private ToggleButton liveAutoSwitch;
     private TextView liveScheduleHint;
@@ -244,6 +244,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         LiveRadioScheduler.schedule(this);
 
         loadCatalog(false);
+        // Non invasivo: una volta al giorno controlla l'ultima Release.
+        // Non scarica e non installa automaticamente gli aggiornamenti.
+        UpdateChecker.check(this, prefs, false);
     }
 
     @Override
@@ -724,6 +727,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         forwardButton = findViewById(R.id.forwardButton);
         downloadButton = findViewById(R.id.downloadButton);
         openDownloadsButton = findViewById(R.id.openDownloadsButton);
+        updateButton = findViewById(R.id.updateButton);
         favoritesFilterButton = findViewById(R.id.favoritesFilterButton);
         unlistenedFilterButton = findViewById(R.id.unlistenedFilterButton);
         speedSpinner = findViewById(R.id.speedSpinner);
@@ -735,6 +739,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     private void configureUi() {
+        updateButton.setOnClickListener(v -> UpdateChecker.check(this, prefs, true));
         liveAutoSwitch.setChecked(LiveRadioScheduler.enabled(this));
         updateLiveRadioHint();
         liveAutoSwitch.setOnCheckedChangeListener((button, enabled) -> {

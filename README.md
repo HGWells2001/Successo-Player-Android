@@ -4,7 +4,17 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.10 – Shuffle intelligente senza ripetizioni**
+**v4.11 – Segnalibri delle puntate e aggiornamenti automatici**
+
+## Novità della v4.11
+
+- Memorizzazione indipendente della posizione di ogni puntata. Passando da A a B e tornando ad A, il lettore riprende dal punto precedente.
+- I segnalibri sono persistenti e non fanno ripartire l'audio automaticamente quando riapri l'app. Gli episodi terminati ricominciano dall'inizio.
+- Ad ogni build firmata la CI pubblica una **GitHub Release**, comprensiva di APK con nome della build, `SuccessoPlayer_Android_latest.apk` e `SHA256.txt`.
+- Il link permanente per l'ultima versione è: https://github.com/HGWells2001/Successo-Player-Android/releases/latest/download/SuccessoPlayer_Android_latest.apk
+- Nuovo comando discreto **⬆** nell'intestazione per controllare gli aggiornamenti. Il controllo viene effettuato automaticamente al massimo una volta ogni 24 ore all'avvio.
+- Quando esiste una versione più recente, l'app propone il download dal collegamento ufficiale GitHub, senza installazione silenziosa o autorizzazioni aggiuntive.
+- La Release può essere pubblicata solo dopo compilazione e verifica della firma con certificato permanente.
 
 ## Novità della v4.10
 
@@ -158,8 +168,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.10`
-- Version code base: `41000`
+- Versione: `4.11`
+- Version code base: `41100`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 
