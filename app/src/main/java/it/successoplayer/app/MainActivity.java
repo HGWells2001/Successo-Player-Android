@@ -174,7 +174,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
             synchronizePlaybackService();
             refreshMoreMenuState();
-            refreshMoreMenuState();
         }
 
         @Override
@@ -1021,18 +1020,19 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     private void toggleSearchPanel() {
-            if (searchPanel.getVisibility() == View.VISIBLE) {
-                searchInput.setText("");
-                searchInput.clearFocus();
-                searchPanel.setVisibility(View.GONE);
-                InputMethodManager input = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                if (input != null) input.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
-            } else {
-                searchPanel.setVisibility(View.VISIBLE);
-                searchInput.requestFocus();
-                InputMethodManager input = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                if (input != null) input.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
-            }
+        if (searchPanel.getVisibility() == View.VISIBLE) {
+            searchInput.setText("");
+            searchInput.clearFocus();
+            searchPanel.setVisibility(View.GONE);
+            InputMethodManager input = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (input != null) input.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
+        } else {
+            searchPanel.setVisibility(View.VISIBLE);
+            searchInput.requestFocus();
+            InputMethodManager input = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (input != null) input.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
+        }
+        refreshMoreMenuState();
     }
 
     private void loadCatalog(boolean forceNetwork) {
@@ -1415,6 +1415,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private void refreshMoreMenuState() {
         if (moreMenuButton == null) return;
         String description = "Apri menu: ricerca, coda, timer, cronologia e aggiornamenti";
+        if (searchPanel != null && searchPanel.getVisibility() == View.VISIBLE) {
+            description += ". Ricerca aperta";
+        }
         if (bound && service != null) {
             int queued = service.getUpNextIds().size();
             if (queued > 0) description += ". Coda: " + queued + " puntate";
@@ -1955,6 +1958,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         }
     }
 
+    boolean canShowUpdatePrompt() {
+        return activityStarted && !destroyed && !isFinishing();
+    }
+
     boolean showPendingApkUpdate() {
         return apkUpdateDownloader.showPendingOnDemand();
     }
@@ -2026,7 +2033,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             pendingRestoreEpisodeId = episode.id == null ? "" : episode.id;
             selectedVisibleIndex = indexOfVisible(episode);
             updateSelectedUi(false);
-            refreshMoreMenuState();
             refreshMoreMenuState();
             // Include la coda esplicita e le transizioni da cuffie/lockscreen.
             if (shuffleEnabled) scrollToShuffleSelection();
@@ -2170,6 +2176,11 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     @Override
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
+        // Close the secondary search view first, without stopping audio.
+        if (searchPanel != null && searchPanel.getVisibility() == View.VISIBLE) {
+            toggleSearchPanel();
+            return;
+        }
         closeAppCompletely();
     }
 

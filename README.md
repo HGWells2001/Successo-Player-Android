@@ -4,7 +4,16 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.20 – Menu a tendina compatto in alto a destra**
+**v4.21 – Navigazione più sicura e aggiornamenti non invasivi**
+
+## Novità della v4.21
+
+- Con il pannello di ricerca aperto, il tasto **Indietro** lo richiude, azzera il filtro e mantiene l'audio in riproduzione. Solo il successivo Indietro esegue la chiusura completa prevista.
+- Il controllo aggiornamenti continua a ogni accesso, ma non apre finestre quando l'app è già passata in background. Quando si rientra, viene effettuato un nuovo controllo.
+- Eliminati aggiornamenti duplicati dello stato del menu e aggiunta una descrizione accessibile quando la ricerca è aperta.
+- Sistemata la formattazione del messaggio di download degli aggiornamenti.
+- Conservati menu ⋮ con esattamente cinque voci, segnalibri, preferiti, coda, cronologia, download, Shuffle, audio in background e firma permanente.
+- Nuovo test di regressione per navigazione e ciclo di vita delle finestre.
 
 ## Novità della v4.20
 

@@ -121,7 +121,7 @@ public final class UpdateChecker {
                                 .setTitle("Aggiornamento disponibile")
                                 .setMessage("Successo Player " + matcher.group(1)
                                         + " (build " + remoteCode + ") è disponibile su GitHub."
-                                        + "\\n\\nIl file verrà verificato e poi Android proporrà l'installazione.")
+                                        + "\n\nIl file verrà verificato e poi Android proporrà l'installazione.")
                                 .setPositiveButton("Scarica APK", (d, w) -> {
                                     if (activity instanceof MainActivity) {
                                         ((MainActivity) activity).beginApkUpdateDownload(
@@ -192,7 +192,11 @@ public final class UpdateChecker {
 
     private static void onUi(Activity activity, Runnable task) {
         activity.runOnUiThread(() -> {
-            if (!activity.isFinishing() && !activity.isDestroyed()) task.run();
+            if (activity.isFinishing() || activity.isDestroyed()) return;
+            // Ignore responses after Home or a task switch; onStart() checks again.
+            if (activity instanceof MainActivity
+                    && !((MainActivity) activity).canShowUpdatePrompt()) return;
+            task.run();
         });
     }
 

@@ -110,9 +110,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # Il codice 42000 e' riservato alla v4.20: tutte le build online sono successive.
-          code = 42000 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 41900 and code < 2100000000
+          # La base 42100 della v4.21 supera tutte le build 420xx già pubblicate.
+          code = 42100 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 42047 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
@@ -129,6 +129,10 @@ jobs:
       - name: Verifica migrazione ricerca e filtri
         shell: bash
         run: python3 tools/check_search_removed.py
+
+      - name: Verifica navigazione ricerca e finestre aggiornamenti in primo piano
+        shell: bash
+        run: python3 tools/check_navigation_and_update_lifecycle.py
 
       - name: Verifica nessuna ripresa automatica dopo Pausa
         shell: bash
@@ -263,8 +267,10 @@ jobs:
           APK Android firmato con la chiave permanente del progetto.
 
           - Posizione di ascolto indipendente per ciascuna puntata.
-          - Controllo aggiornamenti a ogni accesso, pulsante ben visibile.
-          - Pubblicazione automatica di ogni build firmata con link di download stabile.
+          - Controllo aggiornamenti a ogni accesso nel menu ⋮ in alto a destra.
+          - Tasto Indietro chiude prima la ricerca, senza interrompere l'ascolto.
+           - Finestre di aggiornamento mostrate solo con app in primo piano.
+           - Pubblicazione automatica di ogni build firmata con link di download stabile.
           - Installabile sopra la versione precedente senza eliminare dati.
 
           Controlli: firma APK verificata e SHA-256 in allegato.
