@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,8 +30,7 @@ public final class UpdateChecker {
             "https://api.github.com/repos/HGWells2001/Successo-Player-Android/releases/latest";
     private static final String TRUSTED_DOWNLOAD =
             "https://github.com/HGWells2001/Successo-Player-Android/releases/download/";
-    private static final String PREF_LAST_CHECK = "last_release_check_ms";
-    private static final long INTERVAL_MS = 24L * 60L * 60L * 1000L;
+    private static final AtomicBoolean CHECK_IN_PROGRESS = new AtomicBoolean(false);
     private static final Pattern TAG =
             Pattern.compile("^v([0-9]+(?:\\.[0-9]+)*)(?:-build([0-9]+))?$");
 
@@ -38,14 +38,18 @@ public final class UpdateChecker {
 
     public static void check(Activity activity, SharedPreferences prefs, boolean manual) {
         if (activity == null || prefs == null) return;
-        long now = System.currentTimeMillis();
-        if (!manual && now - prefs.getLong(PREF_LAST_CHECK, 0L) < INTERVAL_MS) return;
+        if (!CHECK_IN_PROGRESS.compareAndSet(false, true)) {
+            if (manual) Toast.makeText(activity, "Controllo già in corso.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
                 connection = (HttpURLConnection) new URL(API).openConnection();
                 connection.setConnectTimeout(7000);
                 connection.setReadTimeout(7000);
+                connection.setUseCaches(false);
+                connection.setRequestProperty("Cache-Control", "no-cache");
                 connection.setRequestProperty("Accept", "application/vnd.github+json");
                 connection.setRequestProperty("User-Agent", "SuccessoPlayer-Android");
                 if (connection.getResponseCode() != 200) {
@@ -92,7 +96,6 @@ public final class UpdateChecker {
                 }
                 // A Release without a verified APK is not an update offer.
                 final String downloadUrl = apkUrl;
-                prefs.edit().putLong(PREF_LAST_CHECK, System.currentTimeMillis()).apply();
                 onUi(activity, () -> {
                     if (newer && !downloadUrl.isEmpty()) {
                         new AlertDialog.Builder(activity)
@@ -126,6 +129,7 @@ public final class UpdateChecker {
                                 Toast.LENGTH_LONG).show());
             } finally {
                 if (connection != null) connection.disconnect();
+                CHECK_IN_PROGRESS.set(false);
             }
         }, "Successo-Release-Check").start();
     }

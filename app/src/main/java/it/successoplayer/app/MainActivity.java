@@ -244,9 +244,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         LiveRadioScheduler.schedule(this);
 
         loadCatalog(false);
-        // Non invasivo: una volta al giorno controlla l'ultima Release.
-        // Non scarica e non installa automaticamente gli aggiornamenti.
-        UpdateChecker.check(this, prefs, false);
     }
 
     @Override
@@ -254,6 +251,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         super.onStart();
 
         activityStarted = true;
+        // Verifica aggiornamenti a ogni nuovo accesso, anche dal background.
+        UpdateChecker.check(this, prefs, false);
 
         bindPlaybackService();
         restoreDownloadProgressIfNeeded();

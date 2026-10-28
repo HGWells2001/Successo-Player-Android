@@ -40,19 +40,20 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/updateButton"
-            style="@style/HeaderButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:minWidth="0dp"
-            android:layout_marginLeft="5dp"
-            android:padding="0dp"
-            android:text="⬆"
-            android:textSize="20sp"
-            android:contentDescription="Controlla gli aggiornamenti su GitHub" />
-
     </LinearLayout>
+
+    <Button
+        android:id="@+id/updateButton"
+        style="@style/ControlButton"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="6dp"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:text="↻ Controlla aggiornamenti"
+        android:textAllCaps="false"
+        android:textSize="13sp"
+        android:contentDescription="Controlla adesso se ci sono nuovi aggiornamenti su GitHub" />
 
     <LinearLayout
         android:layout_width="match_parent"
