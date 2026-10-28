@@ -33,7 +33,7 @@ assert "sleepTimerUiHandler.postDelayed(this, 15_000L);" in activity
 assert 'sleepLabel += " · fine puntata";' in activity
 assert '"☾ Timer sonno"' in activity
 assert 'sleepLabel += " · " + Math.max' in activity
-assert "refreshUpNextButton();" in activity
+assert "refreshMoreMenuState();" in activity
 assert "shuffleEnabled ? visibleEpisodes : allEpisodes" in activity
 
 assert "new SleepTimer()" in service
