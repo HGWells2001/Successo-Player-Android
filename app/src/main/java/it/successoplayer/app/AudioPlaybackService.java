@@ -832,7 +832,7 @@ public final class AudioPlaybackService extends Service {
                     // Do not consume Next Up or trigger Shuffle auto-advance.
                     notifyStatus("Timer sonno · fine puntata raggiunta", false);
                 } else {
-                    // Leave the MediaPlayer callback before replacing its source.
+                    // Exit the player completion callback before switching sources.
                     main.post(() -> advanceAfterCompletion(completedEpisode));
                 }
             });
