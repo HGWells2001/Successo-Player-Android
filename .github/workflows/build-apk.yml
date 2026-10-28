@@ -126,7 +126,7 @@ jobs:
         shell: bash
         run: python3 tools/check_proverbs.py
 
-      - name: Verifica ricerca rimossa
+      - name: Verifica migrazione ricerca e filtri
         shell: bash
         run: python3 tools/check_search_removed.py
 
