@@ -45,6 +45,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -137,7 +139,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private Button searchButton, clearSearchButton;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, upNextButton, sleepTimerButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, upNextButton, sleepTimerButton, historyButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private ToggleButton liveAutoSwitch;
     private TextView liveScheduleHint;
@@ -757,6 +759,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         shuffleButton = findViewById(R.id.shuffleButton);
         upNextButton = findViewById(R.id.upNextButton);
         sleepTimerButton = findViewById(R.id.sleepTimerButton);
+        historyButton = findViewById(R.id.historyButton);
         rewindButton = findViewById(R.id.rewindButton);
         forwardButton = findViewById(R.id.forwardButton);
         downloadButton = findViewById(R.id.downloadButton);
@@ -916,6 +919,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         upNextButton.setOnClickListener(v -> showUpNextQueue());
         refreshUpNextButton();
         sleepTimerButton.setOnClickListener(v -> showSleepTimerOptions());
+        historyButton.setOnClickListener(v -> showPlaybackHistory());
         refreshSleepTimerButton();
 
         updateShuffleButton();
@@ -1234,6 +1238,91 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                     getResources().getColor(R.color.textPrimary, getTheme())
             );
         }
+    }
+
+    private void showPlaybackHistory() {
+        if (!bound || service == null) {
+            toast("Motore audio non ancora pronto.");
+            return;
+        }
+        if (!catalogLoaded) {
+            toast("Attendi il caricamento del catalogo.");
+            return;
+        }
+        final List<PlaybackHistory.Entry> records = service.getRecentHistory();
+        if (records.isEmpty()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Ascoltate di recente")
+                    .setMessage("La cronologia è vuota. Compariranno qui le puntate "
+                            + "che hai effettivamente avviato, anche in background.")
+                    .setPositiveButton("Chiudi", null)
+                    .show();
+            return;
+        }
+
+        SimpleDateFormat dateFormat =
+                new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ITALY);
+        String[] names = new String[records.size()];
+        for (int i = 0; i < records.size(); i++) {
+            PlaybackHistory.Entry item = records.get(i);
+            Episode ep = findEpisodeById(item.episodeId);
+            String title = ep == null ? "Puntata non più disponibile" : ep.title;
+            long resumeMs = ep == null ? 0L : service.getSavedEpisodePosition(ep);
+            String progress = resumeMs >= 1000L
+                    ? " · Riprendi da " + formatTime(resumeMs) : "";
+            names[i] = title + "\n" + dateFormat.format(new Date(item.playedAtMs))
+                    + progress;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Ascoltate di recente · " + records.size())
+                .setItems(names, (dialog, index) ->
+                        showHistoryEntryActions(records.get(index).episodeId))
+                .setNeutralButton("Svuota", (dialog, which) -> {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Cancellare la cronologia?")
+                            .setMessage("La coda, i preferiti e i punti d'ascolto "
+                                    + "resteranno invariati.")
+                            .setPositiveButton("Cancella", (d, w) -> {
+                                if (bound && service != null) {
+                                    service.clearPlayHistory();
+                                    toast("Cronologia cancellata");
+                                }
+                            })
+                            .setNegativeButton("Annulla", null)
+                            .show();
+                })
+                .setNegativeButton("Chiudi", null)
+                .show();
+    }
+
+    private void showHistoryEntryActions(String episodeId) {
+        if (!bound || service == null) return;
+        Episode ep = findEpisodeById(episodeId);
+        final String[] options = ep == null
+                ? new String[]{"Rimuovi dalla cronologia"}
+                : new String[]{"Riprendi ascolto", "Aggiungi alla coda",
+                        "Rimuovi dalla cronologia"};
+
+        new AlertDialog.Builder(this)
+                .setTitle(ep == null ? "Puntata non disponibile" : ep.title)
+                .setItems(options, (dialog, selected) -> {
+                    if (ep == null || selected == 2) {
+                        service.removeFromPlayHistory(episodeId);
+                        showPlaybackHistory();
+                    } else if (selected == 0) {
+                        playEpisodeFromAutoMode(ep);
+                    } else {
+                        if (service.enqueueUpNext(ep, false)) {
+                            toast("Aggiunta alla coda");
+                        } else {
+                            toast("Puntata già in coda o coda piena");
+                        }
+                        refreshUpNextButton();
+                    }
+                })
+                .setNegativeButton("Annulla", null)
+                .show();
     }
 
     private void showSleepTimerOptions() {

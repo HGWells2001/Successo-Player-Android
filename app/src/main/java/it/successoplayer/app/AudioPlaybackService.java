@@ -39,6 +39,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 public final class AudioPlaybackService extends Service {
     public interface Listener {
@@ -62,6 +63,7 @@ public final class AudioPlaybackService extends Service {
     private static final String KEY_SHUFFLE_POOL = "shuffle_pool_episode_ids";
     private static final String KEY_SHUFFLE_PLAYED = "shuffle_played_episode_ids";
     private static final String KEY_UP_NEXT = "playback_up_next_ids_json";
+    private static final String KEY_PLAY_HISTORY = "playback_recent_history_v1";
 
     private static final String CHANNEL_ID = "successo_playback";
     private static final int NOTIFICATION_ID = 2407;
@@ -83,6 +85,7 @@ public final class AudioPlaybackService extends Service {
 
     private final List<Episode> queue = new ArrayList<>();
     private final PlaybackQueue upNext = new PlaybackQueue();
+    private final PlaybackHistory playHistory = new PlaybackHistory();
     private final Map<String, Episode> entireCatalog = new HashMap<>();
     private final Set<String> listenedIds = new HashSet<>();
 
@@ -158,6 +161,7 @@ public final class AudioPlaybackService extends Service {
 
         shuffleEnabled = prefs.getBoolean("shuffle_enabled", false);
         restoreUpNext();
+        restorePlayHistory();
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -317,6 +321,61 @@ public final class AudioPlaybackService extends Service {
             // A removed or renamed catalog entry must not block playback.
         }
         return null;
+    }
+
+    /** History includes only episodes that actually started playing. */
+    public List<PlaybackHistory.Entry> getRecentHistory() {
+        return playHistory.snapshot();
+    }
+
+    public boolean removeFromPlayHistory(String episodeId) {
+        boolean removed = playHistory.remove(episodeId);
+        if (removed) persistPlayHistory();
+        return removed;
+    }
+
+    public void clearPlayHistory() {
+        playHistory.clear();
+        persistPlayHistory();
+    }
+
+    private void recordPlayHistory() {
+        if (currentEpisode == null || currentEpisode.id == null) return;
+        if (playHistory.record(currentEpisode.id, System.currentTimeMillis())) {
+            persistPlayHistory();
+        }
+    }
+
+    private void persistPlayHistory() {
+        JSONArray saved = new JSONArray();
+        for (PlaybackHistory.Entry entry : playHistory.snapshot()) {
+            JSONObject object = new JSONObject();
+            try {
+                object.put("id", entry.episodeId);
+                object.put("at", entry.playedAtMs);
+                saved.put(object);
+            } catch (Exception ignored) {}
+        }
+        prefs.edit().putString(KEY_PLAY_HISTORY, saved.toString()).apply();
+    }
+
+    private void restorePlayHistory() {
+        List<PlaybackHistory.Entry> recovered = new ArrayList<>();
+        try {
+            JSONArray saved = new JSONArray(prefs.getString(KEY_PLAY_HISTORY, "[]"));
+            for (int i = 0; i < saved.length() && i < PlaybackHistory.MAX_ITEMS; i++) {
+                JSONObject item = saved.optJSONObject(i);
+                if (item == null) continue;
+                String id = item.optString("id", "");
+                long at = item.optLong("at", 0L);
+                if (!id.isEmpty() && at > 0L) {
+                    recovered.add(new PlaybackHistory.Entry(id, at));
+                }
+            }
+        } catch (Exception ignored) {
+            // Corrupt history must not interfere with playback or other prefs.
+        }
+        playHistory.restore(recovered);
     }
 
     public void setQueue(List<Episode> episodes, boolean shuffle) {
@@ -840,6 +899,7 @@ public final class AudioPlaybackService extends Service {
         try {
             player.start();
             applySpeed();
+            recordPlayHistory();
         } catch (Exception ignored) {}
 
         pendingResumeMs = getCurrentPositionMs();

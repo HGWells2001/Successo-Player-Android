@@ -4,7 +4,17 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.18 – Sleep Timer integrato nel motore audio**
+**v4.19 – Cronologia d'ascolto e ripresa rapida**
+
+## Novità della v4.19
+
+- Un piccolo pulsante **◷** nella barra di controllo apre **Ascoltate di recente**. La cronologia contiene al massimo 50 puntate, in ordine dalla più recente.
+- Vengono registrati soltanto gli episodi che **hanno realmente iniziato la riproduzione**, inclusi ascolti in background, Shuffle e puntate offline. Selezionare una puntata senza ascoltarla non modifica la cronologia.
+- Ogni riga mostra **titolo, data e ora dell'ultimo ascolto** e, quando disponibile, il punto da cui riprendere.
+- Toccando una riga puoi scegliere **Riprendi ascolto**, **Aggiungi alla coda** o **Rimuovi dalla cronologia**.
+- Il comando **Svuota** richiede una conferma; cancellare la cronologia non cancella le posizioni di ascolto, i preferiti, la coda o i download.
+- La cronologia è salvata nelle preferenze dell'app e resta disponibile dopo la chiusura e la riapertura, senza nuove autorizzazioni o raccolta dati esterna.
+- Il sistema di aggiornamento, la ricerca, i filtri, Shuffle, la coda e lo Sleep Timer restano invariati.
 
 ## Novità della v4.18
 
@@ -234,8 +244,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.18`
-- Version code base: `41800`
+- Versione: `4.19`
+- Version code base: `41900`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

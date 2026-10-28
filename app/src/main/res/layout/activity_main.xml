@@ -323,6 +323,20 @@
                     android:textSize="20sp"
                     android:contentDescription="Imposta timer sonno" />
 
+                <Button
+                    android:id="@+id/historyButton"
+                    style="@style/ControlButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginLeft="5dp"
+                    android:minWidth="48dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:gravity="center"
+                    android:text="◷"
+                    android:textSize="22sp"
+                    android:contentDescription="Apri la cronologia delle puntate ascoltate" />
+
                 <Spinner
                     android:id="@+id/speedSpinner"
                     android:layout_width="110dp"
