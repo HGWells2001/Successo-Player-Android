@@ -10,7 +10,7 @@ public final class LiveButtonTextTest {
     }
 
     private static void assertThreeLines(String text) {
-        String[] lines = text.split("\\n", -1);
+        String[] lines = text.split("\n", -1);
         if (lines.length != 3) throw new AssertionError("Expected exactly 3 lines: " + text);
         if (lines[0].length() > 25 || lines[1].length() > 28 || lines[2].length() > 25) {
             throw new AssertionError("Text too wide for compact switch: " + text);
@@ -20,14 +20,14 @@ public final class LiveButtonTextTest {
     public static void main(String[] args) {
         LiveProgramStatus.Snapshot live =
                 LiveProgramStatus.at(ZonedDateTime.parse("2026-10-28T05:47:25+01:00"));
-        equal("● Diretta programma\\n🔴 Fine tra 00:12:35\\n✓ In ascolto",
+        equal("● Diretta programma\n🔴 Fine tra 00:12:35\n✓ In ascolto",
                 LiveButtonText.compose(true, live, "Connessione: in ascolto"));
-        equal("○ Diretta programma\\n🔴 Fine tra 00:12:35\\nDisattivata",
+        equal("○ Diretta programma\n🔴 Fine tra 00:12:35\nDisattivata",
                 LiveButtonText.compose(false, live, "Connessione: disattivata"));
 
         LiveProgramStatus.Snapshot tomorrow =
                 LiveProgramStatus.at(ZonedDateTime.parse("2026-10-28T21:00:00+01:00"));
-        equal("● Diretta programma\\nInizio tra 08:35:00\\nAvvio programmato",
+        equal("● Diretta programma\nInizio tra 08:35:00\nAvvio programmato",
                 LiveButtonText.compose(true, tomorrow,
                         "Connessione: inattiva · avvio programmato"));
 
