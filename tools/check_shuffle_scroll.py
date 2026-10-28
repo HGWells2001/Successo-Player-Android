@@ -16,7 +16,7 @@ callback=main[main.index("@Override public void onEpisode(Episode episode) {"):]
 callback=callback[:callback.index("@Override public void onListenedChanged(")]
 assert "if (shuffleEnabled) scrollToShuffleSelection();" in callback
 auto=main[main.index("private void playEpisodeFromAutoMode(Episode episode) {"):]
-auto=auto[:auto.index("private void revealShuffleSelectionIfHidden()")]
+auto=auto[:auto.index("private void scrollToShuffleSelection()")]
 assert "scrollToShuffleSelection();" in auto
 assert "revealShuffleSelectionIfHidden()" not in main
 assert 'service.setQueue(' in main
