@@ -95,6 +95,14 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
+    private final Handler liveStatusHandler = new Handler(Looper.getMainLooper());
+    private final Runnable liveStatusTick = new Runnable() {
+        @Override public void run() {
+            if (destroyed || !activityStarted) return;
+            updateLiveRadioHint();
+            liveStatusHandler.postDelayed(this, 1000L);
+        }
+    };
     private final Handler sleepTimerUiHandler = new Handler(Looper.getMainLooper());
     private final Runnable sleepTimerUiTick = new Runnable() {
         @Override public void run() {
@@ -148,7 +156,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private ToggleButton liveAutoSwitch;
-    private TextView liveScheduleHint;
+    private TextView liveScheduleHint, liveConnectionHint;
     private boolean syncingLiveSwitch;
     private ProgressBar loadingProgress, downloadProgress;
     private TextView downloadProgressText;
@@ -285,6 +293,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         super.onStart();
 
         activityStarted = true;
+        liveStatusHandler.removeCallbacks(liveStatusTick);
+        liveStatusHandler.post(liveStatusTick);
         sleepTimerUiHandler.removeCallbacks(sleepTimerUiTick);
         sleepTimerUiHandler.post(sleepTimerUiTick);
         apkUpdateDownloader.onStart();
@@ -778,6 +788,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         downloadProgressText = findViewById(R.id.downloadProgressText);
         liveAutoSwitch = findViewById(R.id.liveAutoSwitch);
         liveScheduleHint = findViewById(R.id.liveScheduleHint);
+        liveConnectionHint = findViewById(R.id.liveConnectionHint);
     }
 
     private void configureUi() {
@@ -1929,18 +1940,21 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     private void updateLiveRadioHint() {
-        if (liveScheduleHint == null) return;
-        if (LiveRadioScheduler.inBroadcastWindow()) {
-            liveScheduleHint.setText(LiveRadioScheduler.enabled(this)
-                    ? "In diretta · 05:35–06:00"
-                    : "Diretta fermata · attiva per riprendere");
-        } else if (LiveRadioScheduler.enabled(this)) {
-            liveScheduleHint.setText(LiveRadioScheduler.canSchedulePrecisely(this)
-                    ? "Lun–ven 05:35–06:00 · attiva"
-                    : "⚠ Consenti sveglie esatte");
-        } else {
-            liveScheduleHint.setText("Lun–ven 05:35–06:00");
-        }
+        if (liveScheduleHint == null || liveConnectionHint == null) return;
+        LiveProgramStatus.Snapshot schedule =
+                LiveProgramStatus.at(java.time.ZonedDateTime.now(LiveProgramStatus.ROME));
+        boolean enabled = LiveRadioScheduler.enabled(this);
+        String scheduleText = LiveProgramStatus.summary(schedule);
+        liveScheduleHint.setText(scheduleText);
+        String connectionText = LiveRadioConnection.label(
+                enabled, schedule.inWindow, LiveRadioScheduler.canSchedulePrecisely(this),
+                prefs.getString(LiveRadioConnection.KEY_STATE, LiveRadioConnection.STOPPED),
+                prefs.getLong(LiveRadioConnection.KEY_UPDATED_AT, 0L),
+                System.currentTimeMillis());
+        liveConnectionHint.setText(connectionText);
+        liveScheduleHint.setContentDescription("Programma lunedì–venerdì 05:35–06:00, ora italiana. "
+                + scheduleText);
+        liveConnectionHint.setContentDescription(connectionText);
     }
 
     private void requestNotificationPermission() {
@@ -2119,6 +2133,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     @Override
     protected void onStop() {
         activityStarted = false;
+        liveStatusHandler.removeCallbacks(liveStatusTick);
         sleepTimerUiHandler.removeCallbacks(sleepTimerUiTick);
         apkUpdateDownloader.onStop();
 
@@ -2197,6 +2212,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         destroyed = true;
 
         themeHandler.removeCallbacksAndMessages(null);
+        liveStatusHandler.removeCallbacksAndMessages(null);
         downloadHandler.removeCallbacksAndMessages(null);
         searchHandler.removeCallbacksAndMessages(null);
         sleepTimerUiHandler.removeCallbacksAndMessages(null);

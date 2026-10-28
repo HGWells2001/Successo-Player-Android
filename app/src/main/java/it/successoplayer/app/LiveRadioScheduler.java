@@ -18,9 +18,9 @@ public final class LiveRadioScheduler {
     static final String PREF_ENABLED = "live_radio_auto_enabled";
     static final String ACTION_START = "it.successoplayer.app.RADIO_START_0535";
     static final String ACTION_STOP = "it.successoplayer.app.RADIO_STOP_0600";
-    static final ZoneId ROME = ZoneId.of("Europe/Rome");
-    private static final LocalTime START = LocalTime.of(5, 35);
-    private static final LocalTime END = LocalTime.of(6, 0);
+    static final ZoneId ROME = LiveProgramStatus.ROME;
+    private static final LocalTime START = LiveProgramStatus.START;
+    private static final LocalTime END = LiveProgramStatus.END;
 
     private LiveRadioScheduler() {}
 
@@ -59,11 +59,7 @@ public final class LiveRadioScheduler {
     }
 
     public static boolean inBroadcastWindow() {
-        ZonedDateTime now = ZonedDateTime.now(ROME);
-        DayOfWeek day = now.getDayOfWeek();
-        return day != DayOfWeek.SATURDAY && day != DayOfWeek.SUNDAY
-                && !now.toLocalTime().isBefore(START)
-                && now.toLocalTime().isBefore(END);
+        return LiveProgramStatus.at(ZonedDateTime.now(ROME)).inWindow;
     }
 
     private static ZonedDateTime nextOccurrence(LocalTime hour, ZonedDateTime now) {

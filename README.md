@@ -4,6 +4,18 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
+**v4.22 – Diretta con countdown e stato della connessione**
+
+## Novità della v4.22
+
+- Il riquadro Diretta mostra il tempo restante fino alla prossima fascia feriale delle 05:35 o alla chiusura delle 06:00, con orario italiano e gestione dei cambi d'ora.
+- Lo stato della connessione riflette gli eventi del servizio: collegamento, in ascolto, riconnessione, pausa, errore e inattività. Non si presume che lo streaming sia attivo solo perché l'orario è quello previsto.
+- Countdown aggiornato ogni secondo quando la schermata è aperta, senza richieste di rete aggiuntive; heartbeat dal servizio per evitare stati obsoleti.
+- Nessuna nuova autorizzazione, nessuna modifica ai dati, alla firma di aggiornamento o ai cinque comandi nel menu ⋮.
+- Test automatici su confini 05:35/06:00, fine settimana, cambio dell'ora e stati della connessione.
+
+## Novità della v4.21
+
 **v4.21 – Navigazione più sicura e aggiornamenti non invasivi**
 
 ## Novità della v4.21

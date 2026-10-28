@@ -31,7 +31,18 @@ public final class LiveRadioService extends Service {
     private AudioFocusRequest focusRequest;
     private boolean playingAuto;
     private boolean active;
+    private String connectionState = LiveRadioConnection.STOPPED;
     private int attempts;
+
+    /** Persist state and timestamp to reject stale playback signals after a crash. */
+    private void publishConnection(String state) {
+        connectionState = state;
+        getSharedPreferences(LiveRadioScheduler.PREFS, MODE_PRIVATE)
+                .edit()
+                .putString(LiveRadioConnection.KEY_STATE, state)
+                .putLong(LiveRadioConnection.KEY_UPDATED_AT, System.currentTimeMillis())
+                .apply();
+    }
     private final Runnable retry = this::prepareStream;
     private final Runnable checkWindow = new Runnable() {
         @Override public void run() {
@@ -39,6 +50,7 @@ public final class LiveRadioService extends Service {
             if (playingAuto && !LiveRadioScheduler.inBroadcastWindow()) {
                 shutdown();
             } else {
+                publishConnection(connectionState);
                 handler.postDelayed(this, 15000L);
             }
         }
@@ -80,11 +92,13 @@ public final class LiveRadioService extends Service {
         playingAuto = true;
         active = true;
         attempts = 0;
+        publishConnection(LiveRadioConnection.CONNECTING);
 
         // startForeground subito: Android richiede una notifica tempestiva.
         startForeground(NOTIFICATION_ID, createNotification("Connessione alla diretta…"));
         if (!requestFocus()) {
             shutdown();
+            publishConnection(LiveRadioConnection.ERROR);
             return START_NOT_STICKY;
         }
         handler.post(checkWindow);
@@ -125,9 +139,15 @@ public final class LiveRadioService extends Service {
                     .setOnAudioFocusChangeListener(change -> {
                         if (change == AudioManager.AUDIOFOCUS_LOSS) shutdown();
                         else if (change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT && player != null) {
-                            try { player.pause(); } catch (Exception ignored) {}
+                            try {
+                                player.pause();
+                                publishConnection(LiveRadioConnection.PAUSED);
+                            } catch (Exception ignored) {}
                         } else if (change == AudioManager.AUDIOFOCUS_GAIN && player != null) {
-                            try { player.start(); } catch (Exception ignored) {}
+                            try {
+                                player.start();
+                                publishConnection(LiveRadioConnection.PLAYING);
+                            } catch (Exception ignored) {}
                         }
                     })
                     .build();
@@ -145,6 +165,8 @@ public final class LiveRadioService extends Service {
         }
         releasePlayer();
         attempts++;
+        publishConnection(attempts == 1
+                ? LiveRadioConnection.CONNECTING : LiveRadioConnection.RETRYING);
         try {
             MediaPlayer next = new MediaPlayer();
             player = next;
@@ -161,6 +183,7 @@ public final class LiveRadioService extends Service {
                 }
                 try {
                     mp.start();
+                    publishConnection(LiveRadioConnection.PLAYING);
                     NotificationManager manager = (NotificationManager)
                             getSystemService(Context.NOTIFICATION_SERVICE);
                     if (manager != null) {
@@ -189,10 +212,12 @@ public final class LiveRadioService extends Service {
         if (!active) return;
         releasePlayer();
         if (attempts < MAX_RETRIES && (!playingAuto || LiveRadioScheduler.inBroadcastWindow())) {
+            publishConnection(LiveRadioConnection.RETRYING);
             handler.removeCallbacks(retry);
             handler.postDelayed(retry, 10000L);
         } else {
             shutdown();
+            publishConnection(LiveRadioConnection.ERROR);
         }
     }
 
@@ -206,6 +231,7 @@ public final class LiveRadioService extends Service {
 
     private void shutdown() {
         active = false;
+        publishConnection(LiveRadioConnection.STOPPED);
         handler.removeCallbacks(retry);
         handler.removeCallbacks(checkWindow);
         releasePlayer();

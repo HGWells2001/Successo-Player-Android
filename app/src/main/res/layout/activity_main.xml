@@ -383,8 +383,19 @@
             android:layout_marginLeft="113dp"
             android:gravity="center"
             android:textColor="@color/textSecondary"
-            android:textSize="10sp"
-            android:text="Lun–ven 05:35–06:00" />
+            android:textSize="11sp"
+            android:text="Prossima diretta · lun–ven 05:35–06:00" />
+
+        <TextView
+            android:id="@+id/liveConnectionHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginLeft="113dp"
+            android:gravity="center"
+            android:textColor="@color/textSecondary"
+            android:textSize="11sp"
+            android:text="Connessione: inattiva" />
 
         <TextView
             android:id="@+id/downloadProgressText"
