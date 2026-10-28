@@ -29,7 +29,11 @@ assert 'https://api.github.com/repos/HGWells2001/Successo-Player-Android/release
 assert 'SuccessoPlayer_Android_latest.apk' in up
 assert 'compareVersion' in up and 'remoteCode > installedCode' in up
 assert 'new Thread(' in up and 'setConnectTimeout(' in up and 'setReadTimeout(' in up
-assert 'Intent.ACTION_VIEW' in up and 'setPositiveButton("Scarica APK"' in up
+assert 'setPositiveButton("Scarica APK"' in up
+assert 'beginApkUpdateDownload(' in up
+downloader=(base/"ApkUpdateDownloader.java").read_text(encoding="utf-8")
+assert 'Intent.ACTION_VIEW' in downloader
+assert 'DownloadManager.STATUS_SUCCESSFUL' in downloader
 assert 'permissions:\n      contents: write' in workflow
 assert 'gh release create "$tag"' in workflow
 assert 'gh release view "$tag"' in workflow
