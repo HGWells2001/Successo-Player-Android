@@ -449,7 +449,7 @@ public final class AudioPlaybackService extends Service {
         } catch (Exception ignored) {}
 
         // Promuoviamo subito il servizio a foreground: se l'utente cambia app
-        // mentre RaiPlay Sound sta ancora risolvendo l'URL, il motore audio
+        // mentre la sorgente sta ancora risolvendo l'URL, il motore audio
         // non viene lasciato appeso a un'Activity ormai in background.
         updateNotification(false);
     }
@@ -471,7 +471,7 @@ public final class AudioPlaybackService extends Service {
                 true
         );
 
-        notifyStatus("Risolvo l'audio RaiPlay Sound…", true);
+        notifyStatus("Risolvo l'audio…", true);
 
         io.execute(() -> {
             try {
@@ -1097,7 +1097,7 @@ public final class AudioPlaybackService extends Service {
         MediaMetadata.Builder metadata = new MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_TITLE, currentEpisode.title)
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, "Successo · Storie e voci dal Novecento")
-                .putString(MediaMetadata.METADATA_KEY_ALBUM, "RaiPlay Sound")
+                .putString(MediaMetadata.METADATA_KEY_ALBUM, "Successo · Storie e voci dal Novecento")
                 .putLong(
                         MediaMetadata.METADATA_KEY_DURATION,
                         Math.max(0L, getCurrentDurationMs())

@@ -35,25 +35,26 @@
                 android:id="@+id/programSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Storie e voci dal Novecento · RaiPlay Sound"
+                android:text="Storie e voci dal Novecento"
                 android:textColor="@color/headerText"
                 android:textSize="12sp" />
         </LinearLayout>
 
+        <Button
+            android:id="@+id/updateButton"
+            style="@style/HeaderButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginLeft="6dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:gravity="center"
+            android:text="↻"
+            android:textAllCaps="false"
+            android:textSize="19sp"
+            android:contentDescription="Controlla aggiornamenti" />
     </LinearLayout>
-
-    <Button
-        android:id="@+id/updateButton"
-        style="@style/ControlButton"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_marginTop="6dp"
-        android:minWidth="0dp"
-        android:minHeight="0dp"
-        android:text="↻ Controlla aggiornamenti"
-        android:textAllCaps="false"
-        android:textSize="13sp"
-        android:contentDescription="Controlla adesso se ci sono nuovi aggiornamenti su GitHub" />
 
     <LinearLayout
         android:layout_width="match_parent"

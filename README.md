@@ -1,10 +1,18 @@
 # Successo Player Android
 
-Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecento”** di RaiPlay Sound.
+Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecento”**.
 
 ## Versione corrente
 
-**v4.12 – Controllo aggiornamenti a ogni accesso**
+**v4.13 – Icona aggiornamenti discreta e interfaccia più pulita**
+
+## Novità della v4.13
+
+- Il controllo manuale degli aggiornamenti è tornato a essere una **piccola icona ↻ in alto a destra**, accanto al titolo, con area di tocco da 44 × 44 dp e descrizione accessibile.
+- Eliminato il grande pulsante "Controlla aggiornamenti" sotto il titolo, recuperando spazio per la lista.
+- Rimosso il riferimento al servizio esterno dal sottotitolo, dai messaggi di caricamento, dalle descrizioni dei download, dalle notifiche e dai metadati audio; il catalogo e la riproduzione restano invariati.
+- Il controllo automatico continua **a ogni apertura o ritorno in primo piano**, senza intervallo di 24 ore.
+- Restano attivi download APK da GitHub Releases, firma permanente, Shuffle intelligente e segnalibri individuali.
 
 ## Novità della v4.12
 
@@ -176,8 +184,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.12`
-- Version code base: `41200`
+- Versione: `4.13`
+- Version code base: `41300`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

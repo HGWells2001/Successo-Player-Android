@@ -51,7 +51,7 @@ public final class RaiClient {
                 : "Successo";
 
         JSONObject block = root.optJSONObject("block");
-        if (block == null) throw new IllegalStateException("Catalogo RaiPlay Sound non riconosciuto.");
+        if (block == null) throw new IllegalStateException("Catalogo delle puntate non riconosciuto.");
 
         List<JSONObject> raw = new ArrayList<>();
         String type = block.optString("content_type", "");
@@ -194,7 +194,7 @@ public final class RaiClient {
         int code = c.getResponseCode();
         if (code != 200) {
             c.disconnect();
-            throw new IllegalStateException("RaiPlay Sound: HTTP " + code);
+            throw new IllegalStateException("Errore catalogo: HTTP " + code);
         }
         StringBuilder sb = new StringBuilder();
         try (InputStream in = new BufferedInputStream(c.getInputStream())) {

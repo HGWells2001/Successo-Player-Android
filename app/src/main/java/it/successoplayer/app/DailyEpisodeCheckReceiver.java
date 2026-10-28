@@ -36,7 +36,7 @@ public final class DailyEpisodeCheckReceiver extends BroadcastReceiver {
             try {
                 checkForNewEpisodes(app);
             } catch (Exception ignored) {
-                // Network or RaiPlay Sound temporarily unavailable: retry at the next daily check.
+                // Network or audio source temporarily unavailable: retry at the next daily check.
             } finally {
                 EpisodeCheckScheduler.schedule(app);
                 pendingResult.finish();
@@ -102,7 +102,7 @@ public final class DailyEpisodeCheckReceiver extends BroadcastReceiver {
                 "Nuove puntate di Successo",
                 NotificationManager.IMPORTANCE_DEFAULT
         );
-        channel.setDescription("Avvisa quando RaiPlay Sound pubblica una nuova puntata di Successo");
+        channel.setDescription("Avvisa quando viene pubblicata una nuova puntata di Successo");
         nm.createNotificationChannel(channel);
 
         Intent open = new Intent(context, MainActivity.class)

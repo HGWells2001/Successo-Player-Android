@@ -42,3 +42,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v4.11: posizione di ogni puntata salvata separatamente e GitHub Release automatica con APK stabile e controllo aggiornamenti nell'app.
 
 - v4.12: controllo aggiornamenti a ogni apertura/ritorno in foreground; pulsante testuale ben visibile.
+
+- v4.13: icona aggiornamenti da 44dp in alto a destra nel titolo, pulsante grande eliminato e riferimenti visibili alla piattaforma rimossi.

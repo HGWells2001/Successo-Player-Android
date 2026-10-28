@@ -914,7 +914,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     private void loadCatalog(boolean forceNetwork) {
-        setStatus("Aggiorno il catalogo RaiPlay Sound…", true);
+        setStatus("Aggiorno il catalogo…", true);
 
         if (!forceNetwork) {
             RaiClient.Catalog memoryCache = null;
@@ -964,7 +964,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         catalogLoaded = true;
 
-        programSubtitle.setText(catalog.title + " · RaiPlay Sound");
+        programSubtitle.setText(catalog.title);
 
         restoreSelectionFromState();
         applyFilter();
@@ -1339,7 +1339,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                 String filename = RaiClient.safeName((date.isEmpty() ? "" : date + " - ") + ep.title) + ext;
                 DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
                 req.setTitle(ep.title);
-                req.setDescription("Successo · RaiPlay Sound");
+                req.setDescription("Successo · Puntata");
                 req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 req.setAllowedOverMetered(true);
                 req.setAllowedOverRoaming(false);
