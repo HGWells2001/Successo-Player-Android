@@ -9,6 +9,7 @@ on:
       - "tools/**"
       - "windows-builder/**"
       - "build.gradle"
+      - "gradle.properties"
       - "settings.gradle"
       - ".github/workflows/build-apk.yml"
   workflow_dispatch:
