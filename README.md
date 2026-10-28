@@ -4,7 +4,17 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.14 – Download aggiornamenti verificato e installazione Android**
+**v4.15 – Libreria puntate scaricate e riproduzione offline**
+
+## Novità della v4.15
+
+- Il pulsante **📂** apre la libreria integrata delle puntate scaricate, senza uscire da Successo Player.
+- Elenco dei download completati di questa app, con titoli, dimensioni e totale occupato. Vengono rilevati anche i download delle versioni precedenti ancora presenti nel DownloadManager.
+- **Ascolta offline**: usa direttamente il file locale di Android, senza richiedere una connessione streaming.
+- **Elimina download**: richiede una conferma e rimuove soltanto il file scaricato, non la puntata dal catalogo.
+- Il pannello offre anche **Apri cartella** per accedere al gestore file Android.
+- Nessun permesso generale di accesso alla memoria: la libreria usa esclusivamente DownloadManager e i file scaricati da Successo Player.
+- Restano invariati la firma APK, il controllo aggiornamenti a ogni accesso, la diretta e lo Shuffle.
 
 ## Novità della v4.14
 
@@ -194,8 +204,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.14`
-- Version code base: `41400`
+- Versione: `4.15`
+- Version code base: `41500`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

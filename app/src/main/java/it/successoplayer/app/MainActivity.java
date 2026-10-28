@@ -1285,6 +1285,109 @@ public final class MainActivity extends Activity implements AudioPlaybackService
      * le puntate. Usa solo intent standard e nessun permesso globale ai file.
      */
     private void openEpisodeDownloads() {
+        if (!catalogLoaded) {
+            toast("Attendi il caricamento del catalogo.");
+            return;
+        }
+        setStatus("Cerco le puntate scaricate…", true);
+        final List<Episode> snapshot = new ArrayList<>(allEpisodes);
+        io.execute(() -> {
+            List<OfflineEpisodeLibrary.Item> downloaded =
+                    OfflineEpisodeLibrary.scan(this, snapshot);
+            postUi(() -> {
+                setStatus("Libreria offline pronta", false);
+                showOfflineLibrary(downloaded);
+            });
+        });
+    }
+
+    private void showOfflineLibrary(List<OfflineEpisodeLibrary.Item> downloaded) {
+        if (destroyed || !activityStarted) return;
+        if (downloaded.isEmpty()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Puntate scaricate")
+                    .setMessage("Non risultano download completati nella cronologia "
+                            + "di Successo Player. Puoi anche aprire la cartella "
+                            + "per vedere file copiati manualmente.")
+                    .setPositiveButton("Apri cartella",
+                            (d, w) -> openEpisodeDownloadsFolder())
+                    .setNegativeButton("Chiudi", null)
+                    .show();
+            return;
+        }
+        String[] titles = new String[downloaded.size()];
+        long bytes = 0L;
+        for (int i = 0; i < downloaded.size(); i++) {
+            OfflineEpisodeLibrary.Item item = downloaded.get(i);
+            titles[i] = item.label();
+            bytes += item.bytes;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(String.format(Locale.ITALY,
+                        "Puntate offline: %d · %.1f MB", downloaded.size(),
+                        bytes / 1048576.0))
+                .setItems(titles, (d, index) ->
+                        showOfflineEpisodeActions(downloaded.get(index)))
+                .setNeutralButton("Apri cartella",
+                        (d, w) -> openEpisodeDownloadsFolder())
+                .setNegativeButton("Chiudi", null)
+                .show();
+    }
+
+    private void showOfflineEpisodeActions(OfflineEpisodeLibrary.Item item) {
+        new AlertDialog.Builder(this)
+                .setTitle(item.episode.title)
+                .setItems(new String[]{"▶ Ascolta offline", "Elimina download", "Apri cartella"},
+                        (d, index) -> {
+                    if (index == 0) {
+                        playOfflineEpisode(item);
+                    } else if (index == 1) {
+                        new AlertDialog.Builder(this)
+                                .setTitle("Eliminare il download?")
+                                .setMessage(item.episode.title
+                                        + "\nLa puntata rimarrà nel catalogo online.")
+                                .setPositiveButton("Elimina", (d2, w2) ->
+                                        io.execute(() -> {
+                                            boolean removed = OfflineEpisodeLibrary.delete(this, item);
+                                            postUi(() -> {
+                                                toast(removed ? "Download eliminato" :
+                                                        "Impossibile eliminare il download");
+                                                openEpisodeDownloads();
+                                            });
+                                        }))
+                                .setNegativeButton("Annulla", null)
+                                .show();
+                    } else {
+                        openEpisodeDownloadsFolder();
+                    }
+                })
+                .setNegativeButton("Annulla", null)
+                .show();
+    }
+
+    private void playOfflineEpisode(OfflineEpisodeLibrary.Item item) {
+        if (!bound || service == null) {
+            toast("Motore audio non ancora pronto. Riprova.");
+            return;
+        }
+        Uri uri = OfflineEpisodeLibrary.uriFor(this, item);
+        if (uri == null) {
+            toast("Download non disponibile. Aggiorna la libreria.");
+            return;
+        }
+        selectedEpisode = item.episode;
+        selectedVisibleIndex = indexOfVisible(item.episode);
+        pendingRestoreEpisodeId = item.episode.id;
+        knownDurationMs = item.episode.durationMs;
+        updateSelectedUi(true);
+        if (selectedVisibleIndex >= 0) {
+            episodeList.setSelectionFromTop(selectedVisibleIndex, 0);
+        }
+        service.selectDownloadedEpisode(item.episode, uri);
+        service.togglePlayPause();
+    }
+
+    private void openEpisodeDownloadsFolder() {
         String folderId = "primary:" + Environment.DIRECTORY_DOWNLOADS
                 + "/" + EPISODE_DOWNLOAD_FOLDER;
         Uri folderUri = DocumentsContract.buildDocumentUri(

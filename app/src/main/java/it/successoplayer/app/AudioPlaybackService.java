@@ -86,6 +86,7 @@ public final class AudioPlaybackService extends Service {
     private boolean prepared;
     private boolean fallbackTried;
     private boolean shuffleEnabled;
+    private String downloadedAudioUri;
     private boolean startedForPlayback;
 
     private int volumePercent = 85;
@@ -306,6 +307,7 @@ public final class AudioPlaybackService extends Service {
         releasePlayer();
 
         currentEpisode = episode;
+        downloadedAudioUri = null;
         if (shuffleEnabled && episode != null
                 && shuffleCycle.markPlayed(episode.id)) saveShuffleProgress();
         prepared = false;
@@ -329,6 +331,16 @@ public final class AudioPlaybackService extends Service {
         }
     }
 
+    /**
+     * A selected completed download is played directly, without resolving
+     * its streaming URL. Subsequent ordinary selections return to streaming.
+     */
+    public void selectDownloadedEpisode(Episode episode, android.net.Uri uri) {
+        if (episode == null || uri == null || !"content".equals(uri.getScheme())) return;
+        selectEpisode(episode);
+        downloadedAudioUri = uri.toString();
+    }
+
     public void restoreSession(Episode episode, long positionMs, boolean resumePlayback) {
         if (episode == null) return;
 
@@ -336,6 +348,7 @@ public final class AudioPlaybackService extends Service {
         releasePlayer();
 
         currentEpisode = episode;
+        downloadedAudioUri = null;
         prepared = false;
         fallbackTried = false;
 
@@ -471,6 +484,16 @@ public final class AudioPlaybackService extends Service {
                 true
         );
 
+        if (downloadedAudioUri != null) {
+            final String local = downloadedAudioUri;
+            main.post(() -> {
+                if (generation.get() == token && currentEpisode == episode) {
+                    openSource(local, true, token);
+                }
+            });
+            return;
+        }
+
         notifyStatus("Risolvo l'audio…", true);
 
         io.execute(() -> {
@@ -551,7 +574,7 @@ public final class AudioPlaybackService extends Service {
 
                 notifyStatus(
                         localFile
-                                ? "Riproduzione da cache locale"
+                                ? "Riproduzione offline"
                                 : "Riproduzione streaming",
                         false
                 );
@@ -594,7 +617,7 @@ public final class AudioPlaybackService extends Service {
             });
 
             player.setOnErrorListener((mp, what, extra) -> {
-                if (!fallbackTried && currentEpisode != null) {
+                if (!localFile && !fallbackTried && currentEpisode != null) {
                     fallbackTried = true;
                     cacheFallback(currentEpisode, source, token);
                     return true;
@@ -604,7 +627,7 @@ public final class AudioPlaybackService extends Service {
                 return true;
             });
 
-            if (localFile) {
+            if (localFile && !source.startsWith("content://")) {
                 player.setDataSource(source);
             } else {
                 player.setDataSource(

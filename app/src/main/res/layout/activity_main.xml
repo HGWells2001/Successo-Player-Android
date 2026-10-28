@@ -310,7 +310,7 @@
                 android:layout_marginLeft="7dp"
                 android:text="📂"
                 android:textSize="21sp"
-                android:contentDescription="Apri la cartella delle puntate scaricate" />
+                android:contentDescription="Apri la libreria delle puntate scaricate" />
 
             <ToggleButton
                 android:id="@+id/liveAutoSwitch"

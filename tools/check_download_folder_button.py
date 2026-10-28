@@ -11,8 +11,10 @@ assert "openRaiButton" not in activity + layout
 assert "Apri su RaiPlay" not in layout
 assert '@+id/openDownloadsButton' in layout
 assert 'android:text="📂"' in layout
-assert 'android:contentDescription="Apri la cartella delle puntate scaricate"' in layout
+assert 'android:contentDescription="Apri la libreria delle puntate scaricate"' in layout
 assert "openDownloadsButton.setOnClickListener(v -> openEpisodeDownloads());" in activity
+assert "OfflineEpisodeLibrary.scan(this, snapshot)" in activity
+assert "openEpisodeDownloadsFolder()" in activity
 assert 'EPISODE_DOWNLOAD_FOLDER = "Successo - Storie e voci dal Novecento"' in activity
 assert 'DocumentsContract.buildDocumentUri(' in activity
 assert 'DocumentsContract.Document.MIME_TYPE_DIR' in activity
