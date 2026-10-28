@@ -21,7 +21,7 @@ assert "@+id/sleepTimerButton" not in ids
 assert "case MENU_SLEEP:" in activity
 assert "showSleepTimerOptions();" in activity
 assert "private void showSleepTimerOptions()" in activity
-assert "private void refreshSleepTimerButton()" in activity
+assert "private void refreshMoreMenuState()" in activity
 assert '"Alla fine della puntata"' in activity
 assert '"Disattiva timer"' in activity
 assert "service.startSleepTimer(minutes[index]);" in activity
