@@ -51,6 +51,7 @@ public final class AudioPlaybackService extends Service {
 
     private static final String KEY_SESSION_EPISODE_ID = "session_episode_id";
     private static final String KEY_SESSION_POSITION = "session_position_ms";
+    private static final String KEY_EPISODE_POSITION_PREFIX = "episode_resume_ms_";
     private static final String KEY_SESSION_DURATION = "session_duration_ms";
     private static final String KEY_SESSION_WAS_PLAYING = "session_was_playing";
     private static final String KEY_SESSION_SAVED_AT = "session_saved_at";
@@ -278,7 +279,29 @@ public final class AudioPlaybackService extends Service {
         updateMediaSessionState();
     }
 
+    /**
+     * Recupera il segnalibro dell'episodio, migrando la vecchia posizione
+     * globale soltanto per l'episodio a cui effettivamente apparteneva.
+     */
+    public long getSavedEpisodePosition(Episode episode) {
+        if (episode == null || episode.id == null || prefs == null) return 0L;
+        String key = KEY_EPISODE_POSITION_PREFIX + episode.id;
+        long fallback = episode.id.equals(
+                prefs.getString(KEY_SESSION_EPISODE_ID, ""))
+                ? prefs.getLong(KEY_SESSION_POSITION, 0L) : 0L;
+        long position = prefs.getLong(key, fallback);
+        long duration = episode.durationMs;
+        if (duration > 0L && position >= Math.max(0L, duration - 1500L)) return 0L;
+        return Math.max(0L, duration > 0L ? Math.min(position, duration) : position);
+    }
+
     public void selectEpisode(Episode episode) {
+        // Salva PRIMA la posizione dell'episodio che stiamo lasciando.
+        // Il servizio mantiene un segnalibro indipendente per ogni puntata.
+        if (currentEpisode != null) {
+            persistSessionNow(getCurrentPositionMs(), getCurrentDurationMs(), false);
+        }
+        final long nextPosition = getSavedEpisodePosition(episode);
         generation.incrementAndGet();
         releasePlayer();
 
@@ -287,13 +310,13 @@ public final class AudioPlaybackService extends Service {
                 && shuffleCycle.markPlayed(episode.id)) saveShuffleProgress();
         prepared = false;
         fallbackTried = false;
-        pendingResumeMs = 0L;
+        pendingResumeMs = nextPosition;
 
-        persistSessionNow(0L, episode != null ? episode.durationMs : 0L, false);
+        persistSessionNow(nextPosition, episode != null ? episode.durationMs : 0L, false);
 
         if (listener != null) {
             listener.onEpisode(episode);
-            listener.onPosition(0L, episode != null ? episode.durationMs : 0L);
+            listener.onPosition(nextPosition, episode != null ? episode.durationMs : 0L);
             listener.onPlaybackState(false, false);
         }
 
@@ -999,6 +1022,13 @@ public final class AudioPlaybackService extends Service {
 
         if (currentEpisode != null && currentEpisode.id != null) {
             editor.putString(KEY_SESSION_EPISODE_ID, currentEpisode.id);
+            String key = KEY_EPISODE_POSITION_PREFIX + currentEpisode.id;
+            // Una puntata terminata riparte dall'inizio al prossimo ascolto.
+            if (duration > 0L && position >= Math.max(0L, duration - 1500L)) {
+                editor.remove(key);
+            } else {
+                editor.putLong(key, Math.max(0L, position));
+            }
         } else {
             editor.remove(KEY_SESSION_EPISODE_ID);
         }
