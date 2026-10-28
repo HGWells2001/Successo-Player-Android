@@ -37,6 +37,8 @@ public final class UpdateChecker {
 
     public static void check(Activity activity, SharedPreferences prefs, boolean manual) {
         if (activity == null || prefs == null) return;
+        if (manual && activity instanceof MainActivity
+                && ((MainActivity) activity).showPendingApkUpdate()) return;
         if (!CHECK_IN_PROGRESS.compareAndSet(false, true)) {
             if (manual) Toast.makeText(activity, "Controllo già in corso.", Toast.LENGTH_SHORT).show();
             return;

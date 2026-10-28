@@ -42,5 +42,8 @@ assert "Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES" in downloader
 assert "Intent.ACTION_VIEW" in downloader
 assert "handler.postDelayed(poller, 900L)" in downloader
 assert "hasPending(SharedPreferences prefs, long remoteCode)" in downloader
+assert "showPendingOnDemand()" in downloader
+assert "prompted = false;" in downloader
+assert "showPendingApkUpdate()" in checker
 assert "DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED" in downloader
 print("OK: APK is installed only after DownloadManager success and SHA-256 verification.")

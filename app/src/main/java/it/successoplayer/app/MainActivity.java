@@ -1477,6 +1477,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         }
     }
 
+    boolean showPendingApkUpdate() {
+        return apkUpdateDownloader.showPendingOnDemand();
+    }
+
     void beginApkUpdateDownload(String url, String sha, long expectedSize, long versionCode) {
         apkUpdateDownloader.start(url, sha, expectedSize, versionCode);
     }
