@@ -28,13 +28,17 @@ import android.os.SystemClock;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.json.JSONArray;
 
 public final class AudioPlaybackService extends Service {
     public interface Listener {
@@ -57,6 +61,7 @@ public final class AudioPlaybackService extends Service {
     private static final String KEY_SESSION_SAVED_AT = "session_saved_at";
     private static final String KEY_SHUFFLE_POOL = "shuffle_pool_episode_ids";
     private static final String KEY_SHUFFLE_PLAYED = "shuffle_played_episode_ids";
+    private static final String KEY_UP_NEXT = "playback_up_next_ids_json";
 
     private static final String CHANNEL_ID = "successo_playback";
     private static final int NOTIFICATION_ID = 2407;
@@ -76,6 +81,8 @@ public final class AudioPlaybackService extends Service {
     private final ShuffleCycle shuffleCycle = new ShuffleCycle(new Random());
 
     private final List<Episode> queue = new ArrayList<>();
+    private final PlaybackQueue upNext = new PlaybackQueue();
+    private final Map<String, Episode> entireCatalog = new HashMap<>();
     private final Set<String> listenedIds = new HashSet<>();
 
     private MediaPlayer player;
@@ -144,6 +151,7 @@ public final class AudioPlaybackService extends Service {
         speed = speeds[speedIndex];
 
         shuffleEnabled = prefs.getBoolean("shuffle_enabled", false);
+        restoreUpNext();
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -230,6 +238,79 @@ public final class AudioPlaybackService extends Service {
         }
 
         return currentEpisode != null ? Math.max(0L, currentEpisode.durationMs) : 0L;
+    }
+
+    /** Explicit queued episodes can be outside the currently filtered Shuffle pool. */
+    public void setFullCatalog(List<Episode> episodes) {
+        entireCatalog.clear();
+        if (episodes == null) return;
+        for (Episode ep : episodes) {
+            if (ep != null && ep.id != null) entireCatalog.put(ep.id, ep);
+        }
+    }
+
+    public List<String> getUpNextIds() {
+        return upNext.snapshot();
+    }
+
+    public boolean enqueueUpNext(Episode episode, boolean playNext) {
+        if (episode == null || episode.id == null) return false;
+        entireCatalog.put(episode.id, episode);
+        boolean added = upNext.enqueue(episode.id, playNext);
+        if (added) persistUpNext();
+        return added;
+    }
+
+    public boolean moveUpNext(int index, int direction) {
+        boolean moved = upNext.move(index, direction);
+        if (moved) persistUpNext();
+        return moved;
+    }
+
+    public boolean removeFromUpNext(int index) {
+        boolean removed = upNext.removeAt(index);
+        if (removed) persistUpNext();
+        return removed;
+    }
+
+    public boolean removeFromUpNextById(String id) {
+        boolean removed = upNext.removeId(id);
+        if (removed) persistUpNext();
+        return removed;
+    }
+
+    public void clearUpNext() {
+        upNext.clear();
+        persistUpNext();
+    }
+
+    private void persistUpNext() {
+        JSONArray ids = new JSONArray();
+        for (String id : upNext.snapshot()) ids.put(id);
+        prefs.edit().putString(KEY_UP_NEXT, ids.toString()).apply();
+    }
+
+    private void restoreUpNext() {
+        List<String> restored = new ArrayList<>();
+        try {
+            JSONArray saved = new JSONArray(prefs.getString(KEY_UP_NEXT, "[]"));
+            for (int i = 0; i < saved.length() && i < PlaybackQueue.MAX_ITEMS; ++i) {
+                String id = saved.optString(i, "");
+                if (!id.isEmpty()) restored.add(id);
+            }
+        } catch (Exception ignored) {}
+        upNext.restore(restored);
+    }
+
+    private Episode takeQueuedEpisode() {
+        while (upNext.size() > 0) {
+            String id = upNext.takeNext();
+            persistUpNext();
+            Episode ep = entireCatalog.get(id);
+            if (ep != null) return ep;
+            // A removed or renamed catalog entry must not block playback.
+        }
+        return null;
     }
 
     public void setQueue(List<Episode> episodes, boolean shuffle) {
@@ -710,12 +791,16 @@ public final class AudioPlaybackService extends Service {
         updateNotification(true);
     }
 
-    private void skipToNext() {
-        if (currentEpisode == null || queue.isEmpty()) return;
+    public void skipToNext() {
+        if (currentEpisode == null && upNext.size() == 0) return;
 
-        Episode next = shuffleEnabled
-                ? pickNextShuffleEpisode(currentEpisode)
-                : sequentialEpisodeAfter(currentEpisode);
+        // Manual Up Next overrides Shuffle and ordinary sequential playback.
+        Episode next = takeQueuedEpisode();
+        if (next == null && currentEpisode != null && !queue.isEmpty()) {
+            next = shuffleEnabled
+                    ? pickNextShuffleEpisode(currentEpisode)
+                    : sequentialEpisodeAfter(currentEpisode);
+        }
 
         if (next == null) {
             notifyStatus("Fine del catalogo", false);
@@ -749,14 +834,18 @@ public final class AudioPlaybackService extends Service {
     }
 
     private void advanceAfterCompletion(Episode completedEpisode) {
-        if (completedEpisode == null || queue.isEmpty()) {
+        if (completedEpisode == null) {
             notifyStatus("Fine della puntata", false);
             return;
         }
 
-        Episode next = shuffleEnabled
-                ? pickNextShuffleEpisode(completedEpisode)
-                : sequentialEpisodeAfter(completedEpisode);
+        // Consume user-defined order before falling back to Shuffle/catalog.
+        Episode next = takeQueuedEpisode();
+        if (next == null && !queue.isEmpty()) {
+            next = shuffleEnabled
+                    ? pickNextShuffleEpisode(completedEpisode)
+                    : sequentialEpisodeAfter(completedEpisode);
+        }
 
         if (next == null) {
             notifyStatus("Fine del catalogo", false);

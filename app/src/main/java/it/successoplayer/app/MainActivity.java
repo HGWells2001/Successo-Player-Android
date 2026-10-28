@@ -117,7 +117,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText, updateDownloadHint;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, upNextButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private ToggleButton liveAutoSwitch;
     private TextView liveScheduleHint;
@@ -145,6 +145,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             service.setShuffleEnabled(shuffleEnabled);
 
             synchronizePlaybackService();
+            refreshUpNextButton();
         }
 
         @Override
@@ -314,9 +315,11 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         service.setShuffleEnabled(shuffleEnabled);
 
         if (catalogLoaded) {
+            service.setFullCatalog(allEpisodes);
             service.setQueue(
                     shuffleEnabled ? visibleEpisodes : allEpisodes, shuffleEnabled);
         }
+        refreshUpNextButton();
 
         Episode active = service.getCurrentEpisode();
 
@@ -726,6 +729,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         previousButton = findViewById(R.id.previousButton);
         nextButton = findViewById(R.id.nextButton);
         shuffleButton = findViewById(R.id.shuffleButton);
+        upNextButton = findViewById(R.id.upNextButton);
         rewindButton = findViewById(R.id.rewindButton);
         forwardButton = findViewById(R.id.forwardButton);
         downloadButton = findViewById(R.id.downloadButton);
@@ -785,6 +789,36 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         });
         episodeList.setAdapter(adapter);
 
+        episodeList.setOnItemLongClickListener((parent, view, position, id) -> {
+            if (!bound || service == null) {
+                toast("Motore audio non ancora pronto.");
+                return true;
+            }
+            final Episode chosen = adapter.getEpisode(position);
+            new AlertDialog.Builder(this)
+                    .setTitle(chosen.title)
+                    .setItems(new String[]{
+                                    "Aggiungi alla coda",
+                                    "Riproduci come prossimo",
+                                    "Riproduci subito"},
+                            (dialog, which) -> {
+                                if (which == 2) {
+                                    service.removeFromUpNextById(chosen.id);
+                                    playEpisodeFromAutoMode(chosen);
+                                } else {
+                                    boolean added = service.enqueueUpNext(chosen, which == 1);
+                                    toast(added
+                                            ? (which == 1 ? "Impostata come prossima puntata"
+                                                    : "Aggiunta alla coda")
+                                            : "Puntata già in coda o coda piena");
+                                }
+                                refreshUpNextButton();
+                            })
+                    .setNegativeButton("Annulla", null)
+                    .show();
+            return true;
+        });
+
         episodeList.setOnItemClickListener((parent, view, position, id) -> {
             selectedVisibleIndex = position;
             selectedEpisode = adapter.getEpisode(position);
@@ -838,7 +872,17 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         rewindButton.setOnClickListener(v -> { if (bound) service.seekBy(-30000); });
         forwardButton.setOnClickListener(v -> { if (bound) service.seekBy(30000); });
         previousButton.setOnClickListener(v -> changeEpisode(-1, true));
-        nextButton.setOnClickListener(v -> changeEpisode(1, true));
+        nextButton.setOnClickListener(v -> {
+            if (bound && service != null) {
+                service.skipToNext();
+                refreshUpNextButton();
+            } else {
+                changeEpisode(1, true);
+            }
+        });
+
+        upNextButton.setOnClickListener(v -> showUpNextQueue());
+        refreshUpNextButton();
 
         updateShuffleButton();
         shuffleButton.setOnClickListener(v -> {
@@ -1115,6 +1159,80 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                     getResources().getColor(R.color.textPrimary, getTheme())
             );
         }
+    }
+
+    private void refreshUpNextButton() {
+        if (upNextButton == null) return;
+        int size = bound && service != null ? service.getUpNextIds().size() : 0;
+        upNextButton.setText(size > 0 ? "☷ " + size : "☷");
+        upNextButton.setContentDescription(
+                "Gestisci coda di riproduzione" + (size > 0 ? ": " + size + " puntate" : ""));
+    }
+
+    private void showUpNextQueue() {
+        if (!bound || service == null) {
+            toast("Motore audio non ancora pronto.");
+            return;
+        }
+        final List<String> ids = service.getUpNextIds();
+        refreshUpNextButton();
+        if (ids.isEmpty()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Coda di riproduzione")
+                    .setMessage("La coda è vuota. Tieni premuta una puntata "
+                            + "nell'elenco per aggiungerla o impostarla come prossima.")
+                    .setPositiveButton("Chiudi", null)
+                    .show();
+            return;
+        }
+        String[] entries = new String[ids.size()];
+        for (int i = 0; i < ids.size(); i++) {
+            Episode ep = findEpisodeById(ids.get(i));
+            entries[i] = (i + 1) + ". " +
+                    (ep == null ? "Puntata non disponibile" : ep.title);
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Coda di riproduzione · " + ids.size())
+                .setItems(entries, (d, index) -> showUpNextItemActions(ids.get(index)))
+                .setNeutralButton("Svuota", (d, w) -> new AlertDialog.Builder(this)
+                        .setTitle("Svuotare la coda?")
+                        .setMessage("La puntata in ascolto non verrà interrotta.")
+                        .setPositiveButton("Svuota", (d2, w2) -> {
+                            service.clearUpNext();
+                            refreshUpNextButton();
+                        })
+                        .setNegativeButton("Annulla", null)
+                        .show())
+                .setNegativeButton("Chiudi", null)
+                .show();
+    }
+
+    private void showUpNextItemActions(String id) {
+        if (!bound || service == null) return;
+        List<String> ids = service.getUpNextIds();
+        int index = ids.indexOf(id);
+        if (index < 0) {
+            showUpNextQueue();
+            return;
+        }
+        Episode ep = findEpisodeById(id);
+        new AlertDialog.Builder(this)
+                .setTitle(ep == null ? "Puntata non disponibile" : ep.title)
+                .setItems(new String[]{"Sposta su", "Sposta giù",
+                                "Rimuovi dalla coda", "Riproduci ora"},
+                        (dialog, action) -> {
+                            if (action == 0) service.moveUpNext(index, -1);
+                            else if (action == 1) service.moveUpNext(index, 1);
+                            else if (action == 2) service.removeFromUpNext(index);
+                            else if (ep != null) {
+                                service.removeFromUpNextById(id);
+                                playEpisodeFromAutoMode(ep);
+                            }
+                            refreshUpNextButton();
+                            if (action < 3) showUpNextQueue();
+                        })
+                .setNegativeButton("Annulla", null)
+                .show();
     }
 
     private void updateShuffleButton() {
@@ -1646,8 +1764,19 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             pendingRestoreEpisodeId = episode.id == null ? "" : episode.id;
             selectedVisibleIndex = indexOfVisible(episode);
             updateSelectedUi(false);
-            // Anche i cambi casuali da fine puntata, cuffie e lockscreen.
+            refreshUpNextButton();
+            // Include la coda esplicita e le transizioni da cuffie/lockscreen.
             if (shuffleEnabled) scrollToShuffleSelection();
+            else if (selectedVisibleIndex >= 0) {
+                final String expectedId = episode.id;
+                episodeList.post(() -> {
+                    if (!destroyed && activityStarted && selectedEpisode != null
+                            && expectedId != null && expectedId.equals(selectedEpisode.id)) {
+                        int visible = indexOfVisible(selectedEpisode);
+                        if (visible >= 0) episodeList.setSelectionFromTop(visible, 0);
+                    }
+                });
+            }
         });
     }
 

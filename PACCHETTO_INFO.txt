@@ -48,3 +48,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v4.14: download APK tramite DownloadManager, stato completamento verificato, SHA-256 della Release, conferma installazione Android.
 
 - v4.15: libreria interna di download completati, ascolto offline, cancellazione con conferma e apertura della cartella download.
+
+- v4.16: coda manuale persistente, riordino, riproduci prossimo, precedenza su shuffle e avanzamento automatico in background.

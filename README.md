@@ -4,7 +4,17 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.15 – Libreria puntate scaricate e riproduzione offline**
+**v4.16 – Coda di riproduzione personalizzata**
+
+## Novità della v4.16
+
+- **Coda di riproduzione**: tieni premuta una puntata per scegliere **Aggiungi alla coda**, **Riproduci come prossimo** o **Riproduci subito**.
+- Il pulsante **☷** accanto a Shuffle apre la coda, con il numero di puntate in attesa.
+- Dalla coda puoi **spostare un episodio su o giù, rimuoverlo, avviarlo subito oppure svuotare l'elenco**.
+- La coda ha la priorità sullo Shuffle e sulla riproduzione sequenziale, anche a fine puntata in background o premendo Avanti dalla notifica e dai controlli Android.
+- Gli episodi scelti manualmente possono essere fuori dai filtri attivi senza modificarli.
+- L'ordine viene conservato nelle preferenze dell'app e non avvia automaticamente la riproduzione alla riapertura.
+- Download offline, segnalibri individuali, aggiornamenti e diretta restano disponibili.
 
 ## Novità della v4.15
 
@@ -204,8 +214,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.15`
-- Version code base: `41500`
+- Versione: `4.16`
+- Version code base: `41600`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 
