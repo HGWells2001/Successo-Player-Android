@@ -38,4 +38,5 @@ with tempfile.TemporaryDirectory() as tmp:
             root/"tools/tests/LiveButtonTextTest.java"]
     subprocess.run(["javac","-encoding","UTF-8","-d",tmp,*map(str,source)],check=True)
     subprocess.run(["java","-cp",tmp,"it.successoplayer.app.LiveProgramStatusTest"],check=True)
+    subprocess.run(["java","-cp",tmp,"it.successoplayer.app.LiveButtonTextTest"],check=True)
 print("OK: live schedule, compact three-line switch, and connection regression")
