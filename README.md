@@ -4,7 +4,17 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.13 – Icona aggiornamenti discreta e interfaccia più pulita**
+**v4.14 – Download aggiornamenti verificato e installazione Android**
+
+## Novità della v4.14
+
+- Risolto il passaggio incompleto dal download dell'APK all'installazione: il pulsante aggiornamenti usa adesso il **DownloadManager di Android**, senza aprire un download nel browser.
+- L'avanzamento può arrivare al 100% ma l'APK non viene dichiarato pronto finché Android non segnala **`STATUS_SUCCESSFUL`**.
+- Prima di proporre l'installazione, la dimensione e l'impronta **SHA-256** dell'APK vengono verificate contro il file `SHA256.txt` allegato alla GitHub Release.
+- Al termine compare **Installa**: il file viene aperto con l'installer di Android dopo consenso esplicito. Se necessario Android chiede l'autorizzazione a installare app da Successo Player.
+- Un download iniziato mentre l'app è aperta può continuare in background; quando l'app torna in primo piano, lo stato viene letto dal DownloadManager e l'installazione proposta se l'APK è già pronto.
+- Gli errori reali del download sono mostrati chiaramente con possibilità di riprovare; nessun APK incompleto viene passato all'installer.
+- Conservati l'icona discreta ↻ in alto a destra, il controllo aggiornamenti a ogni accesso, l'ascolto e i dati utente.
 
 ## Novità della v4.13
 
@@ -184,8 +194,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.13`
-- Version code base: `41300`
+- Versione: `4.14`
+- Version code base: `41400`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

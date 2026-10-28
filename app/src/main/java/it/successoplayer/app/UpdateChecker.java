@@ -2,10 +2,8 @@ package it.successoplayer.app;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
-import android.net.Uri;
 import android.os.Build;
 import android.widget.Toast;
 
@@ -13,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -81,6 +80,8 @@ public final class UpdateChecker {
 
                 JSONArray assets = release.optJSONArray("assets");
                 String apkUrl = "";
+                String checksumUrl = "";
+                long expectedSize = -1L;
                 if (assets != null) {
                     for (int i = 0; i < assets.length(); ++i) {
                         JSONObject a = assets.optJSONObject(i);
@@ -88,36 +89,48 @@ public final class UpdateChecker {
                         String name = a.optString("name");
                         String url = a.optString("browser_download_url");
                         if (name.equals("SuccessoPlayer_Android_latest.apk")
-                                && url.startsWith(TRUSTED_DOWNLOAD)) {
+                                && url.startsWith(TRUSTED_DOWNLOAD)
+                                && a.optLong("size", 0L) > 0L) {
                             apkUrl = url;
-                            break;
+                            expectedSize = a.optLong("size");
+                        } else if (name.equals("SHA256.txt")
+                                && url.startsWith(TRUSTED_DOWNLOAD)) {
+                            checksumUrl = url;
                         }
                     }
                 }
                 // A Release without a verified APK is not an update offer.
+                // Require an authenticated release checksum before offering
+                // an installer handoff. Never trust browser percent alone.
+                String sha256 = "";
+                if (newer && !apkUrl.isEmpty() && !checksumUrl.isEmpty()) {
+                    String versionedName = "SuccessoPlayer_Android_v" + matcher.group(1)
+                            + "_build" + remoteCode + ".apk";
+                    sha256 = loadReleaseChecksum(checksumUrl, versionedName);
+                }
                 final String downloadUrl = apkUrl;
+                final String verifiedSha = sha256;
+                final long verifiedSize = expectedSize;
                 onUi(activity, () -> {
-                    if (newer && !downloadUrl.isEmpty()) {
+                    if (newer && !downloadUrl.isEmpty()
+                            && !verifiedSha.isEmpty() && verifiedSize > 0L) {
+                        if (ApkUpdateDownloader.hasPending(prefs, remoteCode)) return;
                         new AlertDialog.Builder(activity)
                                 .setTitle("Aggiornamento disponibile")
                                 .setMessage("Successo Player " + matcher.group(1)
                                         + " (build " + remoteCode + ") è disponibile su GitHub."
-                                        + "\\n\\nVuoi scaricare l'APK firmato?")
+                                        + "\\n\\nIl file verrà verificato e poi Android proporrà l'installazione.")
                                 .setPositiveButton("Scarica APK", (d, w) -> {
-                                    try {
-                                        activity.startActivity(new Intent(Intent.ACTION_VIEW,
-                                                Uri.parse(downloadUrl)));
-                                    } catch (Exception error) {
-                                        Toast.makeText(activity,
-                                                "Impossibile aprire il link GitHub.",
-                                                Toast.LENGTH_LONG).show();
+                                    if (activity instanceof MainActivity) {
+                                        ((MainActivity) activity).beginApkUpdateDownload(
+                                                downloadUrl, verifiedSha, verifiedSize, remoteCode);
                                     }
                                 })
                                 .setNegativeButton("Più tardi", null)
                                 .show();
                     } else if (manual) {
                         Toast.makeText(activity,
-                                newer ? "Release senza APK disponibile."
+                                newer ? "APK o checksum non disponibile: aggiornamento non verificabile."
                                         : "Hai già la versione più recente.",
                                 Toast.LENGTH_LONG).show();
                     }
@@ -132,6 +145,47 @@ public final class UpdateChecker {
                 CHECK_IN_PROGRESS.set(false);
             }
         }, "Successo-Release-Check").start();
+    }
+
+    /** Read the small checksum manifest from the same published GitHub Release. */
+    private static String loadReleaseChecksum(String url, String filename) throws IOException {
+        if (!url.startsWith(TRUSTED_DOWNLOAD)) return "";
+        HttpURLConnection link = (HttpURLConnection) new URL(url).openConnection();
+        link.setConnectTimeout(8000);
+        link.setReadTimeout(8000);
+        link.setRequestProperty("User-Agent", "SuccessoPlayer-Android");
+        try {
+            if (link.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                throw new IOException("Checksum HTTP " + link.getResponseCode());
+            }
+            StringBuilder file = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(link.getInputStream(),
+                            java.nio.charset.StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (file.length() > 16384) throw new IOException("Checksum troppo lungo");
+                    file.append(line).append('\n');
+                }
+            }
+            Matcher found = Pattern.compile("(?m)^([0-9a-fA-F]{64})[ \\t]+\\*?(?:release/)?"
+                    + Pattern.quote(filename) + "[ \\t]*$")
+                    .matcher(file);
+            return found.find() ? found.group(1) : "";
+        } finally {
+            link.disconnect();
+        }
+    }
+
+    static long currentVersionCode(Activity activity) {
+        try {
+            PackageInfo pkg = activity.getPackageManager()
+                    .getPackageInfo(activity.getPackageName(), 0);
+            return Build.VERSION.SDK_INT >= 28
+                    ? pkg.getLongVersionCode() : pkg.versionCode;
+        } catch (Exception e) {
+            return 0L;
+        }
     }
 
     private static void onUi(Activity activity, Runnable task) {

@@ -112,8 +112,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private long knownDurationMs;
     private Episode pendingDownload;
     private SharedPreferences prefs;
+    private ApkUpdateDownloader apkUpdateDownloader;
 
-    private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText;
+    private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText, updateDownloadHint;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
     private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
@@ -209,6 +210,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         setContentView(R.layout.activity_main);
 
         prefs = getSharedPreferences("successo_player", MODE_PRIVATE);
+        apkUpdateDownloader = new ApkUpdateDownloader(this, prefs);
 
         favoriteIds.clear();
         favoriteIds.addAll(
@@ -251,6 +253,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         super.onStart();
 
         activityStarted = true;
+        apkUpdateDownloader.onStart();
         // Verifica aggiornamenti a ogni nuovo accesso, anche dal background.
         UpdateChecker.check(this, prefs, false);
 
@@ -715,6 +718,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         totalTime = findViewById(R.id.totalTime);
         volumeText = findViewById(R.id.volumeText);
         statusText = findViewById(R.id.statusText);
+        updateDownloadHint = findViewById(R.id.updateDownloadHint);
         episodeList = findViewById(R.id.episodeList);
         seekBar = findViewById(R.id.seekBar);
         volumeBar = findViewById(R.id.volumeBar);
@@ -1473,6 +1477,16 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         }
     }
 
+    void beginApkUpdateDownload(String url, String sha, long expectedSize, long versionCode) {
+        apkUpdateDownloader.start(url, sha, expectedSize, versionCode);
+    }
+
+    void showUpdateDownloadStatus(String status) {
+        if (updateDownloadHint == null || destroyed) return;
+        updateDownloadHint.setText(status);
+        updateDownloadHint.setVisibility(android.view.View.VISIBLE);
+    }
+
     private void setStatus(String text, boolean busy) {
         if (statusText != null) {
             statusText.setText(text);
@@ -1600,6 +1614,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     @Override
     protected void onStop() {
         activityStarted = false;
+        apkUpdateDownloader.onStop();
 
         persistUiState();
 
