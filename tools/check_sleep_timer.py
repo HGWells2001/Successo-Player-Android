@@ -49,6 +49,7 @@ assert completion.index("sleepTimer.consumeEpisodeCompletion(") < completion.ind
 assert "notifyStatus(" in completion
 expire = service.split("private void expireSleepTimer() {", 1)[1].split("public void setShuffleEnabled(", 1)[0]
 assert "pause();" in expire, "must preserve listening bookmarks"
+assert "if (player != null && prepared) {" in expire, "timer must pause buffering Media3 too"
 assert "generation.incrementAndGet();" in expire, "must cancel pending asynchronous playback"
 assert "stopPlayback();" not in expire, "do not reset bookmark"
 assert "SystemClock.elapsedRealtime()" in service

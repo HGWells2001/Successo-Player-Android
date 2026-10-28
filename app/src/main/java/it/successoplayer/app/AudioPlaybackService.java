@@ -454,7 +454,8 @@ public final class AudioPlaybackService extends Service {
     private void expireSleepTimer() {
         if (!sleepTimer.isDue(SystemClock.elapsedRealtime())) return;
         sleepTimer.cancel();
-        if (player != null && prepared && isPlaying()) {
+        if (player != null && prepared) {
+            // Pause also while buffering: audio must not restart after the timer expires.
             // Pause preserves the listening bookmark for a future return.
             pause();
         } else if (currentEpisode != null && !prepared) {
