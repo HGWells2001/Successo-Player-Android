@@ -18,7 +18,9 @@ assert 'if (isFinishing())' in activity
 assert 'service.shutdownForAppExit()' in activity
 assert 'PlaybackExit.stopAll(this)' in activity
 assert 'shutdownForAppExit()' in audio and 'persistSessionNow(position, duration, false)' in audio
-assert 'mediaSession.setActive(false)' in audio
+assert 'mediaSession.release();' in audio
+assert 'player.release();' in audio
+assert 'extends MediaSessionService' in audio
 assert 'public void onTaskRemoved(Intent rootIntent)' in audio
 assert 'public void onTaskRemoved(Intent rootIntent)' in radio
 assert 'PlaybackExit.stopAll(this)' in audio and 'PlaybackExit.stopAll(this)' in radio

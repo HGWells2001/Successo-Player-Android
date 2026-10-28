@@ -4,6 +4,20 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
+**v4.25 – Sessione Media3 e controlli esterni**
+
+## Novità della v4.25
+
+- AudioPlaybackService ora usa **MediaSessionService Media3**, con un ExoPlayer stabile durante l'intera vita del servizio e un'unica sessione.
+- Notifica e schermata di blocco gestite da Media3; metadati titolo, autore e copertina incorporati nel MediaItem.
+- Play, Pausa, Stop, Successiva, Precedente e Seek dei controller esterni inoltrati alla logica esistente di playlist, segnalibri, Shuffle, timer sonno e coda.
+- Il collegamento UI con MainActivity resta compatibile; il binder locale rifiuta richieste da UID estranei.
+- Il servizio permette il controllo tramite cuffie e dispositivi Media3 e conserva l'uscita esplicita dell'utente senza continuare la riproduzione.
+- Diretta automatica separata e non modificata. MinSdk/targetSdk e firma di aggiornamento invariate.
+- Test automatici sulla struttura Media3 e regressioni esistenti; la prova sui dispositivi Bluetooth reali rimane necessaria.
+
+## Novità della v4.24
+
 **v4.24 – Motore puntate Media3 / ExoPlayer**
 
 ## Novità della v4.24

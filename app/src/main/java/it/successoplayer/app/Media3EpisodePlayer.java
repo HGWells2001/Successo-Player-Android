@@ -6,6 +6,7 @@ import android.net.Uri;
 import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
+import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
@@ -34,8 +35,13 @@ final class Media3EpisodePlayer {
     private boolean prepared;
     private boolean completed;
     private boolean released;
+    private String episodeId = "";
+    private String episodeTitle = "";
+    private final String artworkUri;
 
     Media3EpisodePlayer(Context context) {
+        artworkUri = "android.resource://" + context.getPackageName() + "/"
+                + R.drawable.logo_successo;
         AudioAttributes speech = new AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
@@ -71,6 +77,34 @@ final class Media3EpisodePlayer {
         });
     }
 
+    ExoPlayer getExoPlayer() { return exo; }
+
+    void setEpisodeInfo(Episode episode) {
+        episodeId = episode == null || episode.id == null ? "" : episode.id;
+        episodeTitle = episode == null || episode.title == null ? "" : episode.title;
+    }
+
+    void clearCallbacks() {
+        preparedListener = null;
+        completedListener = null;
+        errorListener = null;
+        routeInterruptedListener = null;
+    }
+
+    private MediaItem item(Uri uri) {
+        MediaMetadata meta = new MediaMetadata.Builder()
+                .setTitle(episodeTitle)
+                .setArtist("Successo · Storie e voci dal Novecento")
+                .setAlbumTitle("Successo · Storie e voci dal Novecento")
+                .setArtworkUri(Uri.parse(artworkUri))
+                .build();
+        return new MediaItem.Builder()
+                .setUri(uri)
+                .setMediaId(episodeId)
+                .setMediaMetadata(meta)
+                .build();
+    }
+
     void setOnPreparedListener(PreparedListener callback) { preparedListener = callback; }
     void setOnCompletionListener(CompletedListener callback) { completedListener = callback; }
     void setOnErrorListener(ErrorListener callback) { errorListener = callback; }
@@ -81,10 +115,10 @@ final class Media3EpisodePlayer {
     void setDataSource(String source) {
         // Local internal fallback uses absolute paths, not file:// URLs.
         Uri uri = source.startsWith("/") ? Uri.fromFile(new File(source)) : Uri.parse(source);
-        exo.setMediaItem(MediaItem.fromUri(uri));
+        exo.setMediaItem(item(uri));
     }
     void setDataSource(Context context, Uri uri) {
-        exo.setMediaItem(MediaItem.fromUri(uri));
+        exo.setMediaItem(item(uri));
     }
 
     void prepareAsync() { exo.prepare(); }

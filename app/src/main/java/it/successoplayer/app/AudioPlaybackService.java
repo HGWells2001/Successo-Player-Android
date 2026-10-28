@@ -1,22 +1,19 @@
 package it.successoplayer.app;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
-import android.media.MediaMetadata;
-import android.media.session.MediaSession;
-import android.media.session.PlaybackState;
 import android.os.Binder;
+import android.os.Process;
+
+import androidx.media3.common.ForwardingPlayer;
+import androidx.media3.common.Player;
+import androidx.media3.session.MediaSession;
+import androidx.media3.session.MediaSessionService;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -38,7 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public final class AudioPlaybackService extends Service {
+public final class AudioPlaybackService extends MediaSessionService {
     public interface Listener {
         void onStatus(String text, boolean busy);
         void onPlaybackState(boolean playing, boolean prepared);
@@ -62,15 +59,18 @@ public final class AudioPlaybackService extends Service {
     private static final String KEY_UP_NEXT = "playback_up_next_ids_json";
     private static final String KEY_PLAY_HISTORY = "playback_recent_history_v1";
 
-    private static final String CHANNEL_ID = "successo_playback";
-    private static final int NOTIFICATION_ID = 2407;
     private static final String ACTION_TOGGLE = "it.successoplayer.app.TOGGLE";
     private static final String ACTION_PREVIOUS = "it.successoplayer.app.PREVIOUS";
     private static final String ACTION_NEXT = "it.successoplayer.app.NEXT";
     private static final String ACTION_STOP = "it.successoplayer.app.STOP";
 
     public final class LocalBinder extends Binder {
-        public AudioPlaybackService getService() { return AudioPlaybackService.this; }
+        public AudioPlaybackService getService() {
+            if (Binder.getCallingUid() != Process.myUid()) {
+                throw new SecurityException("Local binder restricted to this app");
+            }
+            return AudioPlaybackService.this;
+        }
     }
 
     private final IBinder binder = new LocalBinder();
@@ -106,7 +106,6 @@ public final class AudioPlaybackService extends Service {
     private AudioManager audioManager;
     private AudioFocusRequest focusRequest;
     private MediaSession mediaSession;
-    private Bitmap mediaArtwork;
 
     private String lastStatus = "Pronto";
     private boolean lastBusy;
@@ -139,8 +138,6 @@ public final class AudioPlaybackService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        createChannel();
-
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
 
         listenedIds.clear();
@@ -162,7 +159,8 @@ public final class AudioPlaybackService extends Service {
         restorePlayHistory();
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
+        // A stable ExoPlayer is essential: the session survives episode changes.
+        player = new Media3EpisodePlayer(getApplicationContext());
         createMediaSession();
         updateMediaSessionMetadata();
         updateMediaSessionState();
@@ -172,11 +170,19 @@ public final class AudioPlaybackService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return binder;
+        IBinder controllerBinder = super.onBind(intent);
+        return intent != null && intent.getAction() == null ? binder : controllerBinder;
+    }
+
+    @Override
+    public MediaSession onGetSession(MediaSession.ControllerInfo controllerInfo) {
+        return mediaSession;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Required to handle media-button actions sent to MediaSessionService.
+        super.onStartCommand(intent, flags, startId);
         if (intent != null && ACTION_TOGGLE.equals(intent.getAction())) {
             togglePlayPause();
         } else if (intent != null && ACTION_PREVIOUS.equals(intent.getAction())) {
@@ -736,7 +742,7 @@ public final class AudioPlaybackService extends Service {
         releasePlayer();
 
         try {
-            player = new Media3EpisodePlayer(getApplicationContext());
+            player.setEpisodeInfo(currentEpisode);
             player.setOnRouteInterruptedListener(mp -> {
                 if (generation.get() != token || player != mp) return;
                 // ExoPlayer pauses on a noisy output route change.
@@ -1123,19 +1129,7 @@ public final class AudioPlaybackService extends Service {
         startedForPlayback = false;
         abandonFocus();
 
-        if (mediaSession != null) {
-            try {
-                mediaSession.setPlaybackState(new PlaybackState.Builder()
-                        .setState(PlaybackState.STATE_STOPPED, position, 0f)
-                        .build());
-                mediaSession.setActive(false);
-            } catch (Exception ignored) {}
-        }
-
-        stopForeground(STOP_FOREGROUND_REMOVE);
-        NotificationManager nm = (NotificationManager)
-                getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nm != null) nm.cancel(NOTIFICATION_ID);
+        // Clearing Media3 media items removes the system notification.
         if (listener != null) listener.onPlaybackState(false, false);
         stopSelf();
     }
@@ -1156,15 +1150,6 @@ public final class AudioPlaybackService extends Service {
         startedForPlayback = false;
         updateMediaSessionState();
 
-        stopForeground(STOP_FOREGROUND_REMOVE);
-
-        NotificationManager nm = (NotificationManager) getSystemService(
-                Context.NOTIFICATION_SERVICE
-        );
-        if (nm != null) {
-            nm.cancel(NOTIFICATION_ID);
-        }
-
         if (listener != null) {
             listener.onPlaybackState(false, false);
             listener.onPosition(
@@ -1180,17 +1165,9 @@ public final class AudioPlaybackService extends Service {
 
     private void releasePlayer() {
         prepared = false;
-
         if (player != null) {
-            try {
-                player.reset();
-            } catch (Exception ignored) {}
-
-            try {
-                player.release();
-            } catch (Exception ignored) {}
-
-            player = null;
+            player.clearCallbacks();
+            player.reset();
         }
     }
 
@@ -1316,293 +1293,52 @@ public final class AudioPlaybackService extends Service {
     }
 
     private void createMediaSession() {
-        mediaSession = new MediaSession(this, "SuccessoPlayerMediaSession");
-        mediaSession.setFlags(
-                MediaSession.FLAG_HANDLES_MEDIA_BUTTONS
-                        | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS
-        );
+        // External Media3 controls reuse the app's existing queue and bookmark logic.
+        Player controls = new ForwardingPlayer(player.getExoPlayer()) {
+            @Override public Commands getAvailableCommands() {
+                return super.getAvailableCommands().buildUpon()
+                        .add(Player.COMMAND_SEEK_TO_NEXT)
+                        .add(Player.COMMAND_SEEK_TO_PREVIOUS)
+                        .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                        .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                        .build();
+            }
 
-        mediaSession.setCallback(new MediaSession.Callback() {
-            @Override public void onPlay() {
+            @Override public void play() {
                 if (currentEpisode == null) return;
-                if (player != null && prepared) {
-                    playPrepared();
-                } else {
-                    prepareAndPlay();
-                }
+                if (prepared) playPrepared();
+                else prepareAndPlay();
             }
 
-            @Override public void onPause() {
-                pause();
+            @Override public void pause() { AudioPlaybackService.this.pause(); }
+            @Override public void stop() { stopPlayback(); }
+            @Override public void seekTo(long positionMs) {
+                AudioPlaybackService.this.seekTo(positionMs);
             }
-
-            @Override public void onStop() {
-                stopPlayback();
-            }
-
-            @Override public void onSeekTo(long pos) {
-                seekTo(pos);
-            }
-
-            @Override public void onSkipToNext() {
-                skipToNext();
-            }
-
-            @Override public void onSkipToPrevious() {
-                skipToPrevious();
-            }
-        }, main);
-
-        mediaArtwork = BitmapFactory.decodeResource(
-                getResources(),
-                R.drawable.logo_successo
-        );
-
-        mediaSession.setActive(true);
+            @Override public void seekToNext() { skipToNext(); }
+            @Override public void seekToNextMediaItem() { skipToNext(); }
+            @Override public void seekToPrevious() { skipToPrevious(); }
+            @Override public void seekToPreviousMediaItem() { skipToPrevious(); }
+        };
+        PendingIntent open = PendingIntent.getActivity(this, 1,
+                new Intent(this, MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        mediaSession = new MediaSession.Builder(this, controls)
+                .setSessionActivity(open)
+                .build();
     }
 
     private void updateMediaSessionMetadata() {
-        if (mediaSession == null) return;
-
-        if (currentEpisode == null) {
-            mediaSession.setMetadata(null);
-            return;
-        }
-
-        MediaMetadata.Builder metadata = new MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, currentEpisode.title)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, "Successo · Storie e voci dal Novecento")
-                .putString(MediaMetadata.METADATA_KEY_ALBUM, "Successo · Storie e voci dal Novecento")
-                .putLong(
-                        MediaMetadata.METADATA_KEY_DURATION,
-                        Math.max(0L, getCurrentDurationMs())
-                );
-
-        if (mediaArtwork != null) {
-            metadata.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, mediaArtwork);
-            metadata.putBitmap(MediaMetadata.METADATA_KEY_ART, mediaArtwork);
-        }
-
-        mediaSession.setMetadata(metadata.build());
+        // Metadata now come from the current Media3 MediaItem.
     }
 
     private void updateMediaSessionState() {
-        if (mediaSession == null) return;
-
-        int state;
-        float playbackSpeed;
-
-        if (currentEpisode == null) {
-            state = PlaybackState.STATE_NONE;
-            playbackSpeed = 0f;
-        } else if (isPlaying()) {
-            state = PlaybackState.STATE_PLAYING;
-            playbackSpeed = speed;
-        } else if (startedForPlayback && !prepared) {
-            state = PlaybackState.STATE_BUFFERING;
-            playbackSpeed = 0f;
-        } else if (prepared || startedForPlayback) {
-            state = PlaybackState.STATE_PAUSED;
-            playbackSpeed = 0f;
-        } else {
-            state = PlaybackState.STATE_STOPPED;
-            playbackSpeed = 0f;
-        }
-
-        long actions = PlaybackState.ACTION_PLAY
-                | PlaybackState.ACTION_PAUSE
-                | PlaybackState.ACTION_PLAY_PAUSE
-                | PlaybackState.ACTION_SEEK_TO
-                | PlaybackState.ACTION_STOP;
-
-        if (!queue.isEmpty()) {
-            actions |= PlaybackState.ACTION_SKIP_TO_NEXT
-                    | PlaybackState.ACTION_SKIP_TO_PREVIOUS;
-        }
-
-        PlaybackState.Builder builder = new PlaybackState.Builder()
-                .setActions(actions)
-                .setState(
-                        state,
-                        Math.max(0L, getCurrentPositionMs()),
-                        playbackSpeed,
-                        SystemClock.elapsedRealtime()
-                );
-
-        mediaSession.setPlaybackState(builder.build());
-    }
-
-    private void createChannel() {
-        NotificationManager nm = (NotificationManager) getSystemService(
-                Context.NOTIFICATION_SERVICE
-        );
-
-        if (nm == null) return;
-
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                "Riproduzione audio",
-                NotificationManager.IMPORTANCE_LOW
-        );
-
-        channel.setDescription(
-                "Controlli di riproduzione di Successo Player"
-        );
-        channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-
-        nm.createNotificationChannel(channel);
+        // MediaSessionService observes ExoPlayer, without manual platform states.
     }
 
     private void updateNotification(boolean playing) {
-        if (currentEpisode == null) return;
-
-        // Prima che sia iniziata davvero una sessione audio non serve mostrare
-        // una notifica soltanto perché l'utente ha selezionato una riga.
-        if (!startedForPlayback && !playing) return;
-
-        Intent open = new Intent(this, MainActivity.class)
-                .addFlags(
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP
-                                | Intent.FLAG_ACTIVITY_SINGLE_TOP
-                );
-
-        PendingIntent content = PendingIntent.getActivity(
-                this,
-                10,
-                open,
-                PendingIntent.FLAG_UPDATE_CURRENT
-                        | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Intent previous = new Intent(
-                this,
-                AudioPlaybackService.class
-        ).setAction(ACTION_PREVIOUS);
-
-        PendingIntent previousPi = PendingIntent.getService(
-                this,
-                11,
-                previous,
-                PendingIntent.FLAG_UPDATE_CURRENT
-                        | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Intent toggle = new Intent(
-                this,
-                AudioPlaybackService.class
-        ).setAction(ACTION_TOGGLE);
-
-        PendingIntent togglePi = PendingIntent.getService(
-                this,
-                12,
-                toggle,
-                PendingIntent.FLAG_UPDATE_CURRENT
-                        | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Intent next = new Intent(
-                this,
-                AudioPlaybackService.class
-        ).setAction(ACTION_NEXT);
-
-        PendingIntent nextPi = PendingIntent.getService(
-                this,
-                13,
-                next,
-                PendingIntent.FLAG_UPDATE_CURRENT
-                        | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Intent stop = new Intent(
-                this,
-                AudioPlaybackService.class
-        ).setAction(ACTION_STOP);
-
-        PendingIntent stopPi = PendingIntent.getService(
-                this,
-                14,
-                stop,
-                PendingIntent.FLAG_UPDATE_CURRENT
-                        | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Notification.Action previousAction = new Notification.Action.Builder(
-                android.R.drawable.ic_media_previous,
-                "Precedente",
-                previousPi
-        ).build();
-
-        Notification.Action playAction = new Notification.Action.Builder(
-                playing
-                        ? android.R.drawable.ic_media_pause
-                        : android.R.drawable.ic_media_play,
-                playing ? "Pausa" : "Riproduci",
-                togglePi
-        ).build();
-
-        Notification.Action nextAction = new Notification.Action.Builder(
-                android.R.drawable.ic_media_next,
-                "Successiva",
-                nextPi
-        ).build();
-
-        Notification.Action stopAction = new Notification.Action.Builder(
-                android.R.drawable.ic_menu_close_clear_cancel,
-                "Ferma",
-                stopPi
-        ).build();
-
-        updateMediaSessionMetadata();
-        updateMediaSessionState();
-
-        Notification.Builder notificationBuilder = new Notification.Builder(
-                this,
-                CHANNEL_ID
-        )
-                .setSmallIcon(R.drawable.ic_app)
-                .setContentTitle(currentEpisode.title)
-                .setContentText(
-                        playing
-                                ? "Successo · in riproduzione"
-                                : "Successo · in pausa"
-                )
-                .setContentIntent(content)
-                .setOnlyAlertOnce(true)
-                .setOngoing(startedForPlayback)
-                .setCategory(Notification.CATEGORY_TRANSPORT)
-                .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .addAction(previousAction)
-                .addAction(playAction)
-                .addAction(nextAction)
-                .addAction(stopAction);
-
-        if (mediaArtwork != null) {
-            notificationBuilder.setLargeIcon(mediaArtwork);
-        }
-
-        if (mediaSession != null) {
-            notificationBuilder.setStyle(
-                    new Notification.MediaStyle()
-                            .setMediaSession(mediaSession.getSessionToken())
-                            .setShowActionsInCompactView(0, 1, 2)
-            );
-        }
-
-        Notification notification = notificationBuilder.build();
-
-        // Anche in pausa manteniamo il servizio foreground dopo che una
-        // riproduzione è iniziata. Questo rende molto più robusto il ritorno
-        // dall'app switcher e permette di riprendere dalla notifica.
-        if (startedForPlayback) {
-            startForeground(NOTIFICATION_ID, notification);
-        } else {
-            NotificationManager nm = (NotificationManager) getSystemService(
-                    Context.NOTIFICATION_SERVICE
-            );
-            if (nm != null) {
-                nm.notify(NOTIFICATION_ID, notification);
-            }
-        }
+        // MediaSessionService owns the sole playback notification.
     }
 
     private static String cleanMessage(Exception e) {
@@ -1633,11 +1369,6 @@ public final class AudioPlaybackService extends Service {
                 false
         );
 
-        stopForeground(STOP_FOREGROUND_REMOVE);
-        NotificationManager nm = (NotificationManager)
-                getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nm != null) nm.cancel(NOTIFICATION_ID);
-
         listener = null;
 
         generation.incrementAndGet();
@@ -1648,18 +1379,12 @@ public final class AudioPlaybackService extends Service {
         abandonFocus();
 
         if (mediaSession != null) {
-            try {
-                mediaSession.setActive(false);
-                mediaSession.release();
-            } catch (Exception ignored) {}
+            mediaSession.release();
             mediaSession = null;
         }
-
-        if (mediaArtwork != null) {
-            try {
-                mediaArtwork.recycle();
-            } catch (Exception ignored) {}
-            mediaArtwork = null;
+        if (player != null) {
+            player.release();
+            player = null;
         }
 
         super.onDestroy();

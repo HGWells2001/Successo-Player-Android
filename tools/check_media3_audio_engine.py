@@ -28,6 +28,9 @@ assert "if (!requestFocus())" in svc
 assert "== AudioManager.AUDIOFOCUS_REQUEST_GRANTED" in svc
 assert "prepared = false;" in svc
 assert "private void createMediaSession()" in svc
+assert "new MediaSession.Builder(this, controls)" in svc
+assert "extends MediaSessionService" in svc
+assert "player.clearCallbacks();" in svc
 assert "KEY_UP_NEXT" in svc and "KEY_EPISODE_POSITION_PREFIX" in svc
 assert "private final SleepTimer sleepTimer" in svc
 assert 'android.permission.WAKE_LOCK' in manifest
