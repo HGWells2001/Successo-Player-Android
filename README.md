@@ -4,7 +4,17 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.16 – Coda di riproduzione personalizzata**
+**v4.17 – Ricerca rapida delle puntate**
+
+## Novità della v4.17
+
+- Nuova **icona di ricerca** nella barra superiore, accanto all'icona per gli aggiornamenti. Il campo di ricerca resta nascosto finché non serve.
+- Ricerca in **titoli, descrizioni, date e numeri di puntata**, ignorando maiuscole e accenti. È possibile scrivere più parole in ordine diverso.
+- Il filtro di ricerca si combina con **Preferite** e **Non ascoltate**, senza modificare i filtri attivi.
+- **Shuffle intelligente** seleziona solo fra le puntate che corrispondono alla ricerca e agli eventuali altri filtri. Se non ci sono risultati, non avvia un'altra puntata casuale.
+- La riproduzione attuale non viene interrotta quando si cambia ricerca. L'elenco mostra il numero di risultati e conserva le azioni della coda sul tocco prolungato.
+- La ricerca resta disponibile dopo una ricreazione della schermata; toccando di nuovo l'icona si chiude e si cancella il filtro, evitando ricerche invisibili.
+- Nessun cambiamento al sistema di aggiornamento, ai download o alla firma APK.
 
 ## Novità della v4.16
 
@@ -214,8 +224,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.16`
-- Version code base: `41600`
+- Versione: `4.17`
+- Version code base: `41700`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

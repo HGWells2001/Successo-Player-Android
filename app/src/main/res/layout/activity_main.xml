@@ -28,7 +28,9 @@
                 android:layout_height="wrap_content"
                 android:text="SUCCESSO PLAYER"
                 android:textColor="@color/headerText"
-                android:textSize="24sp"
+                android:textSize="22sp"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:textStyle="bold" />
 
             <TextView
@@ -39,6 +41,21 @@
                 android:textColor="@color/headerText"
                 android:textSize="12sp" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/searchButton"
+            style="@style/HeaderButton"
+            android:layout_width="40dp"
+            android:layout_height="44dp"
+            android:layout_marginLeft="3dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:gravity="center"
+            android:text="⌕"
+            android:textAllCaps="false"
+            android:textSize="26sp"
+            android:contentDescription="Cerca puntate" />
 
         <Button
             android:id="@+id/updateButton"
@@ -54,6 +71,47 @@
             android:textAllCaps="false"
             android:textSize="19sp"
             android:contentDescription="Controlla aggiornamenti" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/searchPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/panel_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/searchInput"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:hint="Cerca titolo, parola, data…"
+            android:textColor="@color/textPrimary"
+            android:textColorHint="@color/textSecondary"
+            android:inputType="text"
+            android:singleLine="true"
+            android:imeOptions="actionSearch"
+            android:maxLength="100"
+            android:textSize="14sp"
+            android:contentDescription="Cerca nel catalogo delle puntate" />
+
+        <Button
+            android:id="@+id/clearSearchButton"
+            style="@style/ControlButton"
+            android:layout_width="40dp"
+            android:layout_height="44dp"
+            android:layout_marginLeft="4dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="✕"
+            android:textSize="19sp"
+            android:contentDescription="Cancella ricerca"
+            android:visibility="gone" />
     </LinearLayout>
 
     <TextView

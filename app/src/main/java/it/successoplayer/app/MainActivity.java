@@ -27,6 +27,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.provider.DocumentsContract;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -103,6 +107,11 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private boolean favoritesOnly;
     private boolean unlistenedOnly;
     private boolean shuffleEnabled;
+    private String searchQuery = "";
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private final Runnable filterSearchTask = () -> {
+        if (!destroyed && catalogLoaded && adapter != null) applyFilter();
+    };
 
     private String pendingRestoreEpisodeId = "";
     private int pendingListPosition;
@@ -115,6 +124,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private ApkUpdateDownloader apkUpdateDownloader;
 
     private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText, updateDownloadHint;
+    private EditText searchInput;
+    private LinearLayout searchPanel;
+    private Button searchButton, clearSearchButton;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
     private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, upNextButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
@@ -235,6 +247,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             prefs.edit().remove("listened_only").apply();
         }
         shuffleEnabled = prefs.getBoolean("shuffle_enabled", false);
+        searchQuery = prefs.getString("ui_search_query", "");
+        if (searchQuery == null) searchQuery = "";
+        if (searchQuery.length() > 100) searchQuery = searchQuery.substring(0, 100);
 
         bindViews();
         configureUi();
@@ -429,7 +444,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         prefs.edit()
                 .putString("ui_selected_episode_id", selectedId)
-                .remove("ui_search_query")
+                .putString("ui_search_query", searchQuery)
                 .putInt("ui_list_position", listPosition)
                 .apply();
     }
@@ -735,6 +750,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         downloadButton = findViewById(R.id.downloadButton);
         openDownloadsButton = findViewById(R.id.openDownloadsButton);
         updateButton = findViewById(R.id.updateButton);
+        searchButton = findViewById(R.id.searchButton);
+        searchPanel = findViewById(R.id.searchPanel);
+        searchInput = findViewById(R.id.searchInput);
+        clearSearchButton = findViewById(R.id.clearSearchButton);
         favoritesFilterButton = findViewById(R.id.favoritesFilterButton);
         unlistenedFilterButton = findViewById(R.id.unlistenedFilterButton);
         speedSpinner = findViewById(R.id.speedSpinner);
@@ -746,6 +765,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     private void configureUi() {
+        configureSearch();
         updateButton.setOnClickListener(v -> UpdateChecker.check(this, prefs, true));
         liveAutoSwitch.setChecked(LiveRadioScheduler.enabled(this));
         updateLiveRadioHint();
@@ -961,6 +981,43 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         openDownloadsButton.setOnClickListener(v -> openEpisodeDownloads());
     }
 
+    /**
+     * Keep search out of sight until requested, with a dedicated clear icon.
+     * Closing it always clears the query so no invisible filter persists.
+     */
+    private void configureSearch() {
+        searchPanel.setVisibility(searchQuery.isEmpty() ? View.GONE : View.VISIBLE);
+        searchInput.setText(searchQuery);
+        searchInput.setSelection(searchInput.length());
+        searchInput.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchQuery = s.toString().trim();
+                prefs.edit().putString("ui_search_query", searchQuery).apply();
+                searchHandler.removeCallbacks(filterSearchTask);
+                searchHandler.postDelayed(filterSearchTask, 180L);
+                clearSearchButton.setVisibility(searchQuery.isEmpty() ? View.GONE : View.VISIBLE);
+            }
+            @Override public void afterTextChanged(Editable text) {}
+        });
+        clearSearchButton.setVisibility(searchQuery.isEmpty() ? View.GONE : View.VISIBLE);
+        clearSearchButton.setOnClickListener(v -> searchInput.setText(""));
+        searchButton.setOnClickListener(v -> {
+            if (searchPanel.getVisibility() == View.VISIBLE) {
+                searchInput.setText("");
+                searchInput.clearFocus();
+                searchPanel.setVisibility(View.GONE);
+                InputMethodManager input = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                if (input != null) input.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
+            } else {
+                searchPanel.setVisibility(View.VISIBLE);
+                searchInput.requestFocus();
+                InputMethodManager input = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                if (input != null) input.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
+    }
+
     private void loadCatalog(boolean forceNetwork) {
         setStatus("Aggiorno il catalogo…", true);
 
@@ -1038,6 +1095,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         for (Episode e : allEpisodes) {
             if (favoritesOnly && !isFavorite(e)) continue;
             if (unlistenedOnly && isListened(e)) continue;
+            if (!EpisodeSearch.matches(e, searchQuery)) continue;
 
             visibleEpisodes.add(e);
         }
@@ -1051,7 +1109,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             if (isListened(e)) listenedCount++;
         }
 
-        if (favoritesOnly || unlistenedOnly) {
+        if (!searchQuery.isEmpty()) {
+            countText.setText(visibleEpisodes.size()
+                    + (visibleEpisodes.size() == 1 ? " risultato" : " risultati"));
+        } else if (favoritesOnly || unlistenedOnly) {
             String filterLabel;
             if (favoritesOnly && unlistenedOnly) {
                 filterLabel = " preferite e non ascoltate";
@@ -1923,6 +1984,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         themeHandler.removeCallbacksAndMessages(null);
         downloadHandler.removeCallbacksAndMessages(null);
+        searchHandler.removeCallbacksAndMessages(null);
 
         unbindPlaybackService();
 
