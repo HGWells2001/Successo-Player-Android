@@ -80,6 +80,26 @@ final class ApkUpdateDownloader {
         handler.removeCallbacks(poller);
     }
 
+    /**
+     * Tapping the header icon again should reopen the installer when the APK
+     * is already verified, or show the current download status.
+     */
+    boolean showPendingOnDemand() {
+        if (downloadId() < 0L) return false;
+        if (prefs.getBoolean(KEY_READY, false)) {
+            prompted = false;
+            promptInstaller();
+        } else {
+            if (active) {
+                handler.removeCallbacks(poller);
+                handler.post(poller);
+            }
+            Toast.makeText(activity, "Download aggiornamento già in corso.",
+                    Toast.LENGTH_SHORT).show();
+        }
+        return true;
+    }
+
     void start(String url, String sha, long expectedSize, long versionCode) {
         if (manager == null || url == null || !url.startsWith(GITHUB_PREFIX)
                 || sha == null || !sha.matches("[0-9a-fA-F]{64}")
