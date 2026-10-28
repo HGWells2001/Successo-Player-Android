@@ -43,34 +43,19 @@
         </LinearLayout>
 
         <Button
-            android:id="@+id/searchButton"
+            android:id="@+id/moreMenuButton"
             style="@style/HeaderButton"
-            android:layout_width="40dp"
-            android:layout_height="44dp"
-            android:layout_marginLeft="3dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginLeft="6dp"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
             android:padding="0dp"
             android:gravity="center"
-            android:text="⌕"
+            android:text="⋮"
             android:textAllCaps="false"
             android:textSize="26sp"
-            android:contentDescription="Cerca puntate" />
-
-        <Button
-            android:id="@+id/updateButton"
-            style="@style/HeaderButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginLeft="6dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:padding="0dp"
-            android:gravity="center"
-            android:text="↻"
-            android:textAllCaps="false"
-            android:textSize="19sp"
-            android:contentDescription="Controlla aggiornamenti" />
+            android:contentDescription="Apri menu: ricerca, coda, timer, cronologia e aggiornamenti" />
     </LinearLayout>
 
     <LinearLayout
@@ -295,47 +280,6 @@
                     android:layout_marginLeft="5dp"
                     android:text="🔀"
                     android:contentDescription="Attiva riproduzione casuale" />
-
-                <Button
-                    android:id="@+id/upNextButton"
-                    style="@style/ControlButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:layout_marginLeft="5dp"
-                    android:minWidth="48dp"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:text="☷"
-                    android:textSize="20sp"
-                    android:contentDescription="Gestisci coda di riproduzione" />
-
-                <Button
-                    android:id="@+id/sleepTimerButton"
-                    style="@style/ControlButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:layout_marginLeft="5dp"
-                    android:minWidth="48dp"
-                    android:minHeight="0dp"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:text="☾"
-                    android:textSize="20sp"
-                    android:contentDescription="Imposta timer sonno" />
-
-                <Button
-                    android:id="@+id/historyButton"
-                    style="@style/ControlButton"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginLeft="5dp"
-                    android:minWidth="48dp"
-                    android:minHeight="0dp"
-                    android:padding="0dp"
-                    android:gravity="center"
-                    android:text="◷"
-                    android:textSize="22sp"
-                    android:contentDescription="Apri la cronologia delle puntate ascoltate" />
 
                 <Spinner
                     android:id="@+id/speedSpinner"

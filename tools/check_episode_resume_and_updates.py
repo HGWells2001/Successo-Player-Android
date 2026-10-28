@@ -24,7 +24,9 @@ assert 'UpdateChecker.check(this, prefs, false);' in main
 assert 'UpdateChecker.check(this, prefs, true)' in main
 tree=ET.parse(xml)
 android='{http://schemas.android.com/apk/res/android}'
-assert any(x.attrib.get(android+'id')=='@+id/updateButton' for x in tree.iter())
+assert any(x.attrib.get(android+'id')=='@+id/moreMenuButton' for x in tree.iter())
+assert '@+id/updateButton' not in xml.read_text(encoding='utf-8')
+assert 'case MENU_UPDATE:' in main
 assert 'https://api.github.com/repos/HGWells2001/Successo-Player-Android/releases/latest' in up
 assert 'SuccessoPlayer_Android_latest.apk' in up
 assert 'compareVersion' in up and 'remoteCode > installedCode' in up

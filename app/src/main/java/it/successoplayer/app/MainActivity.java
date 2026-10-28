@@ -38,6 +38,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.ToggleButton;
@@ -60,6 +61,11 @@ import java.util.concurrent.Executors;
 public final class MainActivity extends Activity implements AudioPlaybackService.Listener {
     private static final int REQ_NOTIFICATIONS = 901;
     private static final int REQ_STORAGE = 902;
+    private static final int MENU_SEARCH = 1001;
+    private static final int MENU_QUEUE = 1002;
+    private static final int MENU_SLEEP = 1003;
+    private static final int MENU_HISTORY = 1004;
+    private static final int MENU_UPDATE = 1005;
 
     // Cartella pubblica utilizzata dal DownloadManager per le puntate.
     private static final String EPISODE_DOWNLOAD_FOLDER = "Successo - Storie e voci dal Novecento";
@@ -93,7 +99,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private final Runnable sleepTimerUiTick = new Runnable() {
         @Override public void run() {
             if (destroyed || !activityStarted) return;
-            refreshSleepTimerButton();
+            refreshMoreMenuState();
             sleepTimerUiHandler.postDelayed(this, 15_000L);
         }
     };
@@ -136,10 +142,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText, updateDownloadHint;
     private EditText searchInput;
     private LinearLayout searchPanel;
-    private Button searchButton, clearSearchButton;
+    private Button clearSearchButton, moreMenuButton;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, upNextButton, sleepTimerButton, historyButton, downloadButton, openDownloadsButton, updateButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private ToggleButton liveAutoSwitch;
     private TextView liveScheduleHint;
@@ -167,8 +173,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             service.setShuffleEnabled(shuffleEnabled);
 
             synchronizePlaybackService();
-            refreshUpNextButton();
-            refreshSleepTimerButton();
+            refreshMoreMenuState();
+            refreshMoreMenuState();
         }
 
         @Override
@@ -347,7 +353,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             service.setQueue(
                     shuffleEnabled ? visibleEpisodes : allEpisodes, shuffleEnabled);
         }
-        refreshUpNextButton();
+        refreshMoreMenuState();
 
         Episode active = service.getCurrentEpisode();
 
@@ -757,15 +763,11 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         previousButton = findViewById(R.id.previousButton);
         nextButton = findViewById(R.id.nextButton);
         shuffleButton = findViewById(R.id.shuffleButton);
-        upNextButton = findViewById(R.id.upNextButton);
-        sleepTimerButton = findViewById(R.id.sleepTimerButton);
-        historyButton = findViewById(R.id.historyButton);
         rewindButton = findViewById(R.id.rewindButton);
         forwardButton = findViewById(R.id.forwardButton);
         downloadButton = findViewById(R.id.downloadButton);
         openDownloadsButton = findViewById(R.id.openDownloadsButton);
-        updateButton = findViewById(R.id.updateButton);
-        searchButton = findViewById(R.id.searchButton);
+        moreMenuButton = findViewById(R.id.moreMenuButton);
         searchPanel = findViewById(R.id.searchPanel);
         searchInput = findViewById(R.id.searchInput);
         clearSearchButton = findViewById(R.id.clearSearchButton);
@@ -781,7 +783,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
     private void configureUi() {
         configureSearch();
-        updateButton.setOnClickListener(v -> UpdateChecker.check(this, prefs, true));
+        moreMenuButton.setOnClickListener(v -> showMoreMenu());
         liveAutoSwitch.setChecked(LiveRadioScheduler.enabled(this));
         updateLiveRadioHint();
         liveAutoSwitch.setOnCheckedChangeListener((button, enabled) -> {
@@ -847,7 +849,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                                                     : "Aggiunta alla coda")
                                             : "Puntata già in coda o coda piena");
                                 }
-                                refreshUpNextButton();
+                                refreshMoreMenuState();
                             })
                     .setNegativeButton("Annulla", null)
                     .show();
@@ -910,17 +912,13 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         nextButton.setOnClickListener(v -> {
             if (bound && service != null) {
                 service.skipToNext();
-                refreshUpNextButton();
+                refreshMoreMenuState();
             } else {
                 changeEpisode(1, true);
             }
         });
 
-        upNextButton.setOnClickListener(v -> showUpNextQueue());
-        refreshUpNextButton();
-        sleepTimerButton.setOnClickListener(v -> showSleepTimerOptions());
-        historyButton.setOnClickListener(v -> showPlaybackHistory());
-        refreshSleepTimerButton();
+        refreshMoreMenuState();
 
         updateShuffleButton();
         shuffleButton.setOnClickListener(v -> {
@@ -1020,7 +1018,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         });
         clearSearchButton.setVisibility(searchQuery.isEmpty() ? View.GONE : View.VISIBLE);
         clearSearchButton.setOnClickListener(v -> searchInput.setText(""));
-        searchButton.setOnClickListener(v -> {
+    }
+
+    private void toggleSearchPanel() {
             if (searchPanel.getVisibility() == View.VISIBLE) {
                 searchInput.setText("");
                 searchInput.clearFocus();
@@ -1033,7 +1033,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                 InputMethodManager input = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                 if (input != null) input.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
             }
-        });
     }
 
     private void loadCatalog(boolean forceNetwork) {
@@ -1318,7 +1317,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                         } else {
                             toast("Puntata già in coda o coda piena");
                         }
-                        refreshUpNextButton();
+                        refreshMoreMenuState();
                     }
                 })
                 .setNegativeButton("Annulla", null)
@@ -1357,37 +1356,74 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                     } else {
                         service.cancelSleepTimer();
                     }
-                    refreshSleepTimerButton();
+                    refreshMoreMenuState();
                 })
                 .setNegativeButton("Chiudi", null)
                 .show();
     }
 
-    private void refreshSleepTimerButton() {
-        if (sleepTimerButton == null) return;
-        if (!bound || service == null || !service.isSleepTimerActive()) {
-            sleepTimerButton.setText("☾");
-            sleepTimerButton.setContentDescription("Imposta timer sonno");
-            return;
+    /** A single overflow menu for secondary player actions. */
+    private void showMoreMenu() {
+        if (moreMenuButton == null || destroyed) return;
+        PopupMenu menu = new PopupMenu(this, moreMenuButton);
+        menu.setGravity(Gravity.END);
+        String searchLabel = searchPanel.getVisibility() == View.VISIBLE
+                ? "⌕ Chiudi ricerca" : "⌕ Cerca puntate";
+        menu.getMenu().add(0, MENU_SEARCH, 0, searchLabel);
+
+        int queued = bound && service != null ? service.getUpNextIds().size() : 0;
+        menu.getMenu().add(0, MENU_QUEUE, 1,
+                "☷ Coda di riproduzione" + (queued > 0 ? " (" + queued + ")" : ""));
+
+        String sleepLabel = "☾ Timer sonno";
+        if (bound && service != null && service.isSleepTimerActive()) {
+            if (service.isSleepTimerUntilEpisodeEnd()) {
+                sleepLabel += " · fine puntata";
+            } else {
+                long remaining = service.getSleepTimerRemainingMs();
+                sleepLabel += " · " + Math.max(1L,
+                        (remaining + 59_999L) / 60_000L) + " min";
+            }
         }
-        if (service.isSleepTimerUntilEpisodeEnd()) {
-            sleepTimerButton.setText("☾ Fine");
-            sleepTimerButton.setContentDescription("Timer sonno attivo fino alla fine della puntata");
-        } else {
-            long ms = service.getSleepTimerRemainingMs();
-            long minutes = Math.max(1L, (ms + 59_999L) / 60_000L);
-            sleepTimerButton.setText("☾ " + minutes + "m");
-            sleepTimerButton.setContentDescription(
-                    "Timer sonno attivo, circa " + minutes + " minuti rimanenti");
-        }
+        menu.getMenu().add(0, MENU_SLEEP, 2, sleepLabel);
+        menu.getMenu().add(0, MENU_HISTORY, 3, "◷ Cronologia d'ascolto");
+        menu.getMenu().add(0, MENU_UPDATE, 4, "↻ Controlla aggiornamenti");
+        menu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case MENU_SEARCH:
+                    toggleSearchPanel();
+                    return true;
+                case MENU_QUEUE:
+                    showUpNextQueue();
+                    return true;
+                case MENU_SLEEP:
+                    showSleepTimerOptions();
+                    return true;
+                case MENU_HISTORY:
+                    showPlaybackHistory();
+                    return true;
+                case MENU_UPDATE:
+                    UpdateChecker.check(this, prefs, true);
+                    return true;
+                default:
+                    return false;
+            }
+        });
+        menu.show();
     }
 
-    private void refreshUpNextButton() {
-        if (upNextButton == null) return;
-        int size = bound && service != null ? service.getUpNextIds().size() : 0;
-        upNextButton.setText(size > 0 ? "☷ " + size : "☷");
-        upNextButton.setContentDescription(
-                "Gestisci coda di riproduzione" + (size > 0 ? ": " + size + " puntate" : ""));
+    private void refreshMoreMenuState() {
+        if (moreMenuButton == null) return;
+        String description = "Apri menu: ricerca, coda, timer, cronologia e aggiornamenti";
+        if (bound && service != null) {
+            int queued = service.getUpNextIds().size();
+            if (queued > 0) description += ". Coda: " + queued + " puntate";
+            if (service.isSleepTimerActive()) {
+                description += service.isSleepTimerUntilEpisodeEnd()
+                        ? ". Timer fino a fine puntata" : ". Timer sonno attivo";
+            }
+        }
+        moreMenuButton.setContentDescription(description);
     }
 
     private void showUpNextQueue() {
@@ -1396,7 +1432,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             return;
         }
         final List<String> ids = service.getUpNextIds();
-        refreshUpNextButton();
+        refreshMoreMenuState();
         if (ids.isEmpty()) {
             new AlertDialog.Builder(this)
                     .setTitle("Coda di riproduzione")
@@ -1420,7 +1456,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                         .setMessage("La puntata in ascolto non verrà interrotta.")
                         .setPositiveButton("Svuota", (d2, w2) -> {
                             service.clearUpNext();
-                            refreshUpNextButton();
+                            refreshMoreMenuState();
                         })
                         .setNegativeButton("Annulla", null)
                         .show())
@@ -1449,7 +1485,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                                 service.removeFromUpNextById(id);
                                 playEpisodeFromAutoMode(ep);
                             }
-                            refreshUpNextButton();
+                            refreshMoreMenuState();
                             if (action < 3) showUpNextQueue();
                         })
                 .setNegativeButton("Annulla", null)
@@ -1963,7 +1999,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     @Override public void onStatus(String text, boolean busy) {
         postUi(() -> {
             setStatus(text, busy);
-            refreshSleepTimerButton();
+            refreshMoreMenuState();
         });
     }
 
@@ -1990,8 +2026,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             pendingRestoreEpisodeId = episode.id == null ? "" : episode.id;
             selectedVisibleIndex = indexOfVisible(episode);
             updateSelectedUi(false);
-            refreshUpNextButton();
-            refreshSleepTimerButton();
+            refreshMoreMenuState();
+            refreshMoreMenuState();
             // Include la coda esplicita e le transizioni da cuffie/lockscreen.
             if (shuffleEnabled) scrollToShuffleSelection();
             else if (selectedVisibleIndex >= 0) {

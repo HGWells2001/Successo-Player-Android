@@ -56,3 +56,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v4.18: Sleep Timer 15/30/45/60/90 min o fino a fine episodio, servizio background, pausa con segnalibro, annullamento e indicatore residuo.
 
 - v4.19: cronologia degli ultimi 50 ascolti avviati, pulsante ◷, ripresa dal segnalibro, gestione individuale, svuotamento confermato e persistenza.
+
+- v4.20: menu a tendina unico ⋮ in alto a destra con Ricerca, Coda, Timer, Cronologia e Aggiornamenti; rimossi i pulsanti singoli.

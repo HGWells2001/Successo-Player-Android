@@ -11,10 +11,12 @@ service = (java / "AudioPlaybackService.java").read_text(encoding="utf-8")
 activity = (java / "MainActivity.java").read_text(encoding="utf-8")
 tree = ET.parse(root / "app/src/main/res/layout/activity_main.xml")
 ns = "{http://schemas.android.com/apk/res/android}"
-button = next(n for n in tree.iter() if n.attrib.get(ns+"id") == "@+id/upNextButton")
-assert button.attrib[ns+"text"] == "☷"
+button = next(n for n in tree.iter() if n.attrib.get(ns+"id") == "@+id/moreMenuButton")
+assert button.attrib[ns+"text"] == "⋮"
 assert button.attrib[ns+"layout_height"] == "48dp"
-assert "upNextButton.setOnClickListener(v -> showUpNextQueue());" in activity
+assert "case MENU_QUEUE:" in activity
+assert "showUpNextQueue();" in activity
+assert "@+id/upNextButton" not in {x.attrib.get(ns+"id") for x in tree.iter()}
 assert "episodeList.setOnItemLongClickListener(" in activity
 assert "service.enqueueUpNext(chosen, which == 1)" in activity
 assert "service.moveUpNext(index, -1)" in activity
@@ -23,7 +25,7 @@ assert "service.removeFromUpNext(index)" in activity
 assert "service.clearUpNext()" in activity
 assert "service.skipToNext();" in activity
 assert "service.setFullCatalog(allEpisodes);" in activity
-assert "refreshUpNextButton();" in activity
+assert "refreshMoreMenuState();" in activity
 assert 'KEY_UP_NEXT = "playback_up_next_ids_json"' in service
 assert "restoreUpNext();" in service
 assert "prefs.edit().putString(KEY_UP_NEXT, ids.toString()).apply();" in service

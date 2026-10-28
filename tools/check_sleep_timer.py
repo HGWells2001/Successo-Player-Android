@@ -13,12 +13,13 @@ source = (base / "SleepTimer.java").read_text(encoding="utf-8")
 layout = ET.parse(root / "app/src/main/res/layout/activity_main.xml")
 ns = "{http://schemas.android.com/apk/res/android}"
 ids = {e.attrib.get(ns + "id"): e for e in layout.iter() if e.attrib.get(ns + "id")}
-button = ids["@+id/sleepTimerButton"]
+button = ids["@+id/moreMenuButton"]
 assert button.attrib[ns + "layout_height"] == "48dp"
-assert button.attrib[ns + "contentDescription"] == "Imposta timer sonno"
-assert button.attrib[ns + "text"] == "☾"
+assert button.attrib[ns + "text"] == "⋮"
 assert button.attrib[ns + "minWidth"] == "48dp"
-assert "sleepTimerButton.setOnClickListener(v -> showSleepTimerOptions());" in activity
+assert "@+id/sleepTimerButton" not in ids
+assert "case MENU_SLEEP:" in activity
+assert "showSleepTimerOptions();" in activity
 assert "private void showSleepTimerOptions()" in activity
 assert "private void refreshSleepTimerButton()" in activity
 assert '"Alla fine della puntata"' in activity
@@ -29,7 +30,9 @@ assert "service.cancelSleepTimer()" in activity
 assert "sleepTimerUiHandler.removeCallbacks(sleepTimerUiTick);" in activity
 assert "sleepTimerUiHandler.post(sleepTimerUiTick);" in activity
 assert "sleepTimerUiHandler.postDelayed(this, 15_000L);" in activity
-assert 'sleepTimerButton.setText("☾ Fine");' in activity
+assert 'sleepLabel += " · fine puntata";' in activity
+assert '"☾ Timer sonno"' in activity
+assert 'sleepLabel += " · " + Math.max' in activity
 assert "refreshUpNextButton();" in activity
 assert "shuffleEnabled ? visibleEpisodes : allEpisodes" in activity
 

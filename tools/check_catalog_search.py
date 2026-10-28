@@ -13,14 +13,14 @@ layout=ET.parse(root/"app/src/main/res/layout/activity_main.xml")
 ns="{http://schemas.android.com/apk/res/android}"
 ids={x.attrib.get(ns+"id"):x for x in layout.iter() if x.attrib.get(ns+"id")}
 header=list(layout.getroot())[0]
-searchButton=ids["@+id/searchButton"]
-assert searchButton in list(header) and searchButton.tag=="Button"
-assert searchButton.attrib[ns+"layout_width"]=="40dp"
-assert searchButton.attrib[ns+"layout_height"]=="44dp"
-assert searchButton.attrib[ns+"contentDescription"]=="Cerca puntate"
-update=ids["@+id/updateButton"]
-assert update in list(header)
-assert list(header).index(searchButton) < list(header).index(update)
+moreButton=ids["@+id/moreMenuButton"]
+assert moreButton in list(header) and moreButton.tag=="Button"
+assert moreButton.attrib[ns+"layout_width"]=="48dp"
+assert moreButton.attrib[ns+"layout_height"]=="48dp"
+assert "menu" in moreButton.attrib[ns+"contentDescription"].lower()
+assert moreButton is list(header)[-1]
+assert "@+id/searchButton" not in ids
+assert "@+id/updateButton" not in ids
 panel=ids["@+id/searchPanel"]
 assert panel.attrib[ns+"visibility"]=="gone"
 assert panel in list(layout.getroot())
@@ -28,9 +28,12 @@ assert ids["@+id/searchInput"].tag=="EditText"
 assert ids["@+id/searchInput"].attrib[ns+"maxLength"]=="100"
 assert ids["@+id/clearSearchButton"].attrib[ns+"contentDescription"]=="Cancella ricerca"
 assert 'searchInput.addTextChangedListener(new TextWatcher()' in main
-assert 'searchButton.setOnClickListener(v -> {' in main
+assert "case MENU_SEARCH:" in main
+assert "toggleSearchPanel();" in main
+assert 'moreMenuButton.setOnClickListener(v -> showMoreMenu());' in main
 assert 'clearSearchButton.setOnClickListener(v -> searchInput.setText(""));' in main
 assert 'searchPanel.setVisibility(View.GONE);' in main
+assert 'private void toggleSearchPanel()' in main
 assert 'searchInput.setText("");' in main
 assert 'searchHandler.postDelayed(filterSearchTask, 180L);' in main
 assert 'searchHandler.removeCallbacksAndMessages(null);' in main
@@ -41,7 +44,7 @@ assert 'if (!searchQuery.isEmpty()) {' in main
 assert 'adapter.setItems(visibleEpisodes);' in main
 assert 'shuffleEnabled ? visibleEpisodes : allEpisodes' in main
 assert 'service.setQueue(' in main
-assert 'private void refreshUpNextButton()' in main
+assert 'private void refreshMoreMenuState()' in main
 assert 'private void showOfflineLibrary(' in main
 assert 'UpdateChecker.check(this, prefs, false);' in main
 assert 'private static final String KEY_UP_NEXT' in service

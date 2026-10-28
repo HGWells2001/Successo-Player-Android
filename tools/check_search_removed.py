@@ -10,7 +10,9 @@ for term in ("searchBox", "savedSearch", '"search_query"', "q.isEmpty()"):
     assert term not in activity, f"Legacy search still present: {term}"
 assert "searchBox" not in layout
 # A compact, optional, persisted search replaces it.
-assert "searchButton" in activity and '@+id/searchButton' in layout
+assert "moreMenuButton" in activity and '@+id/moreMenuButton' in layout
+assert "MENU_SEARCH" in activity and "toggleSearchPanel();" in activity
+assert "@+id/searchButton" not in layout
 assert "searchPanel" in activity and '@+id/searchPanel' in layout
 assert "TextWatcher" in activity
 assert '.putString("ui_search_query", searchQuery)' in activity

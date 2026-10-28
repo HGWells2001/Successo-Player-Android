@@ -9,18 +9,20 @@ main=(java/"MainActivity.java").read_text(encoding="utf-8")
 checker=(java/"UpdateChecker.java").read_text(encoding="utf-8")
 xml=ET.parse(root/"app/src/main/res/layout/activity_main.xml")
 ns="{http://schemas.android.com/apk/res/android}"
-button=next(x for x in xml.iter() if x.attrib.get(ns+"id")=="@+id/updateButton")
+button=next(x for x in xml.iter() if x.attrib.get(ns+"id")=="@+id/moreMenuButton")
 assert button.tag=="Button"
-assert button.attrib.get(ns+"text")=="↻"
-assert button.attrib.get(ns+"layout_width")=="44dp"
-assert button.attrib.get(ns+"layout_height")=="44dp"
-assert button.attrib.get(ns+"contentDescription")=="Controlla aggiornamenti"
+assert button.attrib.get(ns+"text")=="⋮"
+assert button.attrib.get(ns+"layout_width")=="48dp"
+assert button.attrib.get(ns+"layout_height")=="48dp"
+assert "aggiornamenti" in button.attrib.get(ns+"contentDescription")
 header=list(xml.getroot())[0]
-assert button in list(header), "Update icon must sit inside the title header"
+assert button in list(header), "Overflow menu must sit inside the title header"
 assert header.attrib.get(ns+"orientation")=="horizontal"
 assert header.attrib.get(ns+"gravity")=="center_vertical"
-assert button is list(header)[-1], "Update icon must be at the top right"
-assert "updateButton.setOnClickListener(v -> UpdateChecker.check(this, prefs, true));" in main
+assert button is list(header)[-1], "Overflow must be at the top right"
+assert "case MENU_UPDATE:" in main
+assert "UpdateChecker.check(this, prefs, true);" in main
+assert "@+id/updateButton" not in {x.attrib.get(ns+"id") for x in xml.iter()}
 create=main.split("protected void onCreate(",1)[1].split("protected void onStart(",1)[0]
 start=main.split("protected void onStart(",1)[1].split("private void mainRebindPlaybackService(",1)[0]
 assert "UpdateChecker.check(this, prefs, false);" in start

@@ -13,15 +13,14 @@ layout = ET.parse(root / "app/src/main/res/layout/activity_main.xml")
 ns = "{http://schemas.android.com/apk/res/android}"
 
 button = next(x for x in layout.iter()
-              if x.attrib.get(ns+"id") == "@+id/historyButton")
+              if x.attrib.get(ns+"id") == "@+id/moreMenuButton")
 assert button.tag == "Button"
-assert button.attrib[ns+"text"] == "◷"
+assert button.attrib[ns+"text"] == "⋮"
 assert button.attrib[ns+"layout_width"] == "48dp"
 assert button.attrib[ns+"layout_height"] == "48dp"
-assert button.attrib[ns+"contentDescription"] == "Apri la cronologia delle puntate ascoltate"
-
-assert "historyButton = findViewById(R.id.historyButton);" in main
-assert "historyButton.setOnClickListener(v -> showPlaybackHistory());" in main
+assert "case MENU_HISTORY:" in main
+assert "showPlaybackHistory();" in main
+assert "@+id/historyButton" not in {x.attrib.get(ns+"id") for x in layout.iter()}
 assert "private void showPlaybackHistory()" in main
 assert "private void showHistoryEntryActions(String episodeId)" in main
 assert "service.getRecentHistory()" in main
