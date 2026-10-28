@@ -4,7 +4,15 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.11 – Segnalibri delle puntate e aggiornamenti automatici**
+**v4.12 – Controllo aggiornamenti a ogni accesso**
+
+## Novità della v4.12
+
+- L'app verifica la Release più recente **ogni volta che viene aperta o torna dal background**, non più soltanto una volta ogni 24 ore.
+- Il pulsante "↻ Controlla aggiornamenti" ora è **ben visibile subito sotto l'intestazione**, senza dover riconoscere una piccola icona.
+- Le verifiche avvengono in background e senza utilizzare una cache HTTP, evitando blocchi del player e informazioni obsolete.
+- Le richieste simultanee vengono deduplicate. Installazione e download richiedono sempre l'azione dell'utente.
+- Conservati firma permanente, download diretto da GitHub Releases, Shuffle intelligente e segnalibri di ciascuna puntata.
 
 ## Novità della v4.11
 
@@ -168,8 +176,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.11`
-- Version code base: `41100`
+- Versione: `4.12`
+- Version code base: `41200`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 
