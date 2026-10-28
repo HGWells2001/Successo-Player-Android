@@ -4,6 +4,18 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
+**v4.23 – Diretta informativa integrata nel pulsante**
+
+## Novità della v4.23
+
+- Le informazioni relative alla diretta sono ora raccolte dentro il pulsante «Diretta programma» già presente, senza occupare spazio aggiuntivo sotto la barra.
+- Il pulsante mantiene esattamente **48dp di altezza** e presenta tre righe compatte: stato ON/OFF, conto alla rovescia per inizio/fine della fascia e stato della connessione.
+- Le informazioni complete restano disponibili ai lettori di schermo grazie alla descrizione accessibile; il testo si adatta allo spazio disponibile.
+- Conservati tutti i meccanismi della diretta, il timer da 1 secondo, le funzioni audio e il menu ⋮ a cinque voci.
+- Test aggiornati per verificare che nessuna etichetta esterna sia rimasta e che le informazioni siano leggibili nel pulsante.
+
+## Novità della v4.22
+
 **v4.22 – Diretta con countdown e stato della connessione**
 
 ## Novità della v4.22

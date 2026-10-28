@@ -156,7 +156,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, favoritesFilterButton, unlistenedFilterButton;
     private Spinner speedSpinner;
     private ToggleButton liveAutoSwitch;
-    private TextView liveScheduleHint, liveConnectionHint;
     private boolean syncingLiveSwitch;
     private ProgressBar loadingProgress, downloadProgress;
     private TextView downloadProgressText;
@@ -787,8 +786,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         downloadProgress = findViewById(R.id.downloadProgress);
         downloadProgressText = findViewById(R.id.downloadProgressText);
         liveAutoSwitch = findViewById(R.id.liveAutoSwitch);
-        liveScheduleHint = findViewById(R.id.liveScheduleHint);
-        liveConnectionHint = findViewById(R.id.liveConnectionHint);
     }
 
     private void configureUi() {
@@ -1940,21 +1937,28 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     private void updateLiveRadioHint() {
-        if (liveScheduleHint == null || liveConnectionHint == null) return;
+        if (liveAutoSwitch == null || prefs == null) return;
         LiveProgramStatus.Snapshot schedule =
                 LiveProgramStatus.at(java.time.ZonedDateTime.now(LiveProgramStatus.ROME));
         boolean enabled = LiveRadioScheduler.enabled(this);
-        String scheduleText = LiveProgramStatus.summary(schedule);
-        liveScheduleHint.setText(scheduleText);
         String connectionText = LiveRadioConnection.label(
                 enabled, schedule.inWindow, LiveRadioScheduler.canSchedulePrecisely(this),
                 prefs.getString(LiveRadioConnection.KEY_STATE, LiveRadioConnection.STOPPED),
                 prefs.getLong(LiveRadioConnection.KEY_UPDATED_AT, 0L),
                 System.currentTimeMillis());
-        liveConnectionHint.setText(connectionText);
-        liveScheduleHint.setContentDescription("Programma lunedì–venerdì 05:35–06:00, ora italiana. "
-                + scheduleText);
-        liveConnectionHint.setContentDescription(connectionText);
+
+        // All status information lives INSIDE the existing 48dp ToggleButton.
+        // Changing its text never toggles checked state or restarts audio.
+        String compactText = LiveButtonText.compose(enabled, schedule, connectionText);
+        liveAutoSwitch.setTextOn(compactText);
+        liveAutoSwitch.setTextOff(compactText);
+        liveAutoSwitch.setText(compactText);
+
+        // Keep the full schedule and connection detail accessible to TalkBack.
+        liveAutoSwitch.setContentDescription(
+                (enabled ? "Disattiva" : "Attiva") + " la diretta del programma. "
+                + "Lunedì–venerdì 05:35–06:00, ora italiana. "
+                + LiveProgramStatus.summary(schedule) + ". " + connectionText);
     }
 
     private void requestNotificationPermission() {

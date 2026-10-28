@@ -364,38 +364,24 @@
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:gravity="center"
-                android:paddingLeft="7dp"
-                android:paddingRight="7dp"
+                android:paddingLeft="3dp"
+                android:paddingRight="3dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:includeFontPadding="false"
+                android:maxLines="3"
+                android:autoSizeTextType="uniform"
+                android:autoSizeMinTextSize="8sp"
+                android:autoSizeMaxTextSize="10sp"
+                android:autoSizeStepGranularity="1sp"
                 android:background="@drawable/live_toggle_bg"
                 android:textColor="@color/live_toggle_text"
                 android:textOn="● Diretta programma"
                 android:textOff="○ Diretta programma"
                 android:textAllCaps="false"
-                android:textSize="12sp"
-                android:contentDescription="Diretta programma: attiva o interrompi la diretta e la programmazione automatica" />
+                android:textSize="10sp"
+                android:contentDescription="Diretta programma: orario, conto alla rovescia e stato connessione" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/liveScheduleHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:layout_marginLeft="113dp"
-            android:gravity="center"
-            android:textColor="@color/textSecondary"
-            android:textSize="11sp"
-            android:text="Prossima diretta · lun–ven 05:35–06:00" />
-
-        <TextView
-            android:id="@+id/liveConnectionHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:layout_marginLeft="113dp"
-            android:gravity="center"
-            android:textColor="@color/textSecondary"
-            android:textSize="11sp"
-            android:text="Connessione: inattiva" />
 
         <TextView
             android:id="@+id/downloadProgressText"

@@ -110,9 +110,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # La base 42200 della v4.22 supera tutte le build 421xx già pubblicate.
-          code = 42200 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 42148 and code < 2100000000
+          # La base 42300 della v4.23 supera tutte le build 422xx già pubblicate.
+          code = 42300 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 42249 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
@@ -271,7 +271,7 @@ jobs:
           APK Android firmato con la chiave permanente del progetto.
 
           - Posizione di ascolto indipendente per ciascuna puntata.
-          - Diretta: conto alla rovescia e stato reale della connessione audio.
+          - Diretta compatta: countdown e connessione all'interno del pulsante da 48dp; nessuna riga aggiuntiva.
           - Controllo aggiornamenti a ogni accesso nel menu ⋮ in alto a destra.
           - Tasto Indietro chiude prima la ricerca, senza interrompere l'ascolto.
            - Finestre di aggiornamento mostrate solo con app in primo piano.

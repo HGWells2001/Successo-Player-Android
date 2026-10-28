@@ -22,16 +22,25 @@ for button_id in ("@+id/downloadButton", "@+id/openDownloadsButton"):
     button = next(child for child in row if child.attrib.get(ns + "id") == button_id)
     assert button.attrib.get(ns + "layout_height") == "48dp"
     assert button.attrib.get(ns + "layout_width") == "48dp"
-hint = next(element for element in tree.iter() if element.attrib.get(ns + "id") == "@+id/liveScheduleHint")
-assert hint not in list(row)
-container = next(parent for parent in tree.iter() if row in list(parent))
-assert hint in list(container)
+# Nothing lives beneath the button: programme and connection are inside it.
+ids = {x.attrib.get(ns + "id") for x in tree.iter()}
+assert "@+id/liveScheduleHint" not in ids
+assert "@+id/liveConnectionHint" not in ids
+assert set(x.attrib.get(ns + "id") for x in row if x.attrib.get(ns + "id")) == {
+    "@+id/downloadButton", "@+id/openDownloadsButton", "@+id/liveAutoSwitch"
+}
 assert row.attrib.get(ns + "gravity") == "center_vertical"
 assert toggle.attrib.get(ns + "textOn") == "● Diretta programma"
 assert toggle.attrib.get(ns + "textOff") == "○ Diretta programma"
 assert toggle.attrib.get(ns + "background") == "@drawable/live_toggle_bg"
 assert toggle.attrib.get(ns + "textColor") == "@color/live_toggle_text"
 assert toggle.attrib.get(ns + "textAllCaps") == "false"
+assert toggle.attrib.get(ns + "maxLines") == "3"
+assert toggle.attrib.get(ns + "autoSizeTextType") == "uniform"
+assert toggle.attrib.get(ns + "autoSizeMinTextSize") == "8sp"
+assert toggle.attrib.get(ns + "autoSizeMaxTextSize") == "10sp"
+assert toggle.attrib.get(ns + "textSize") == "10sp"
+assert toggle.attrib.get(ns + "includeFontPadding") == "false"
 assert "private ToggleButton liveAutoSwitch;" in activity
 assert "liveAutoSwitch.setOnCheckedChangeListener" in activity
 assert "LiveRadioScheduler.setEnabled(this, enabled);" in activity
@@ -45,4 +54,4 @@ color = list(ET.parse(palette).getroot())
 assert color[0].attrib[ns + "state_checked"] == "true"
 assert color[0].attrib[ns + "color"] == "@color/headerText"
 assert color[1].attrib[ns + "color"] == "@color/textPrimary"
-print("OK: three controls vertically aligned in one 48dp row; status below.")
+print("OK: live info inside unchanged 48dp button, no extra UI below.")
