@@ -58,3 +58,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v4.19: cronologia degli ultimi 50 ascolti avviati, pulsante ◷, ripresa dal segnalibro, gestione individuale, svuotamento confermato e persistenza.
 
 - v4.20: menu a tendina unico ⋮ in alto a destra con Ricerca, Coda, Timer, Cronologia e Aggiornamenti; rimossi i pulsanti singoli.
+
+- v5.0: mini-player fisso con controlli completi espandibili, indicatore progresso per ogni episodio da segnalibro Media3 e menu ⋮ in gruppi Catalogo/Riproduzione/App.

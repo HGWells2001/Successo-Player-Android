@@ -24,7 +24,8 @@ assert "!((MainActivity) activity).canShowUpdatePrompt()" in ui
 assert "task.run();" in ui
 assert "refreshMoreMenuState();\n            refreshMoreMenuState();" not in main
 menu = main.split("private void showMoreMenu()", 1)[1].split("private void refreshMoreMenuState()", 1)[0]
-assert menu.count("menu.getMenu().add(0, MENU_") == 5
+assert menu.count("menu.getMenu().add(") == 5
+assert "setGroupDividerEnabled(true)" in menu
 assert '@+id/moreMenuButton' in layout
 for removed in ("@+id/searchButton", "@+id/updateButton", "@+id/queueButton", "@+id/sleepTimerButton", "@+id/historyButton"):
     assert removed not in layout

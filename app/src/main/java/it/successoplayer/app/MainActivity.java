@@ -149,7 +149,13 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
     private TextView programSubtitle, countText, selectedTitle, selectedMeta, currentTime, totalTime, volumeText, statusText, updateDownloadHint;
     private EditText searchInput;
-    private LinearLayout searchPanel;
+    private LinearLayout searchPanel, playbackDetailsPanel;
+    private TextView miniTitle, miniSubtitle;
+    private Button miniPlayButton, miniNextButton, miniExpandButton;
+    private ProgressBar miniProgress;
+    private boolean playerExpanded;
+    private boolean miniPlaying;
+    private long miniPositionMs, miniDurationMs;
     private Button clearSearchButton, moreMenuButton;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
@@ -246,6 +252,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         setContentView(R.layout.activity_main);
 
         prefs = getSharedPreferences("successo_player", MODE_PRIVATE);
+        playerExpanded = prefs.getBoolean("ui_player_expanded", false);
         apkUpdateDownloader = new ApkUpdateDownloader(this, prefs);
 
         favoriteIds.clear();
@@ -528,6 +535,37 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         return null;
     }
 
+    /** Keep the compact player pinned and synchronized with the actual playback. */
+    private void setPlayerExpanded(boolean expanded) {
+        playerExpanded = expanded;
+        if (playbackDetailsPanel != null) {
+            playbackDetailsPanel.setVisibility(expanded ? View.VISIBLE : View.GONE);
+        }
+        if (miniExpandButton != null) {
+            miniExpandButton.setText(expanded ? "⌄" : "⌃");
+            miniExpandButton.setContentDescription(expanded
+                    ? "Riduci controlli completi" : "Espandi controlli completi");
+        }
+        if (prefs != null) prefs.edit().putBoolean("ui_player_expanded", expanded).apply();
+    }
+
+    private void updateMiniProgress(long positionMs, long durationMs) {
+        miniPositionMs = Math.max(0L, positionMs);
+        if (durationMs > 0L) miniDurationMs = durationMs;
+        if (miniProgress != null) {
+            miniProgress.setProgress(EpisodeProgress.thousandths(
+                    miniPositionMs, miniDurationMs));
+        }
+        if (miniSubtitle != null && selectedEpisode != null) {
+            miniSubtitle.setText(formatTime(miniPositionMs) + " / "
+                    + formatTime(miniDurationMs)
+                    + (miniPlaying ? " · In ascolto" : " · In pausa"));
+        }
+        if (adapter != null && selectedEpisode != null) {
+            adapter.setCurrentPlayback(selectedEpisode.id, miniPositionMs, miniDurationMs);
+        }
+    }
+
     private void updateTimelineFromPosition(long positionMs, long durationMs) {
         long duration = Math.max(0L, durationMs);
         long position = Math.max(
@@ -558,6 +596,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         currentTime.setText(formatTime(position));
         totalTime.setText(formatTime(knownDurationMs));
+        updateMiniProgress(position, knownDurationMs);
     }
 
     private void postUi(Runnable action) {
@@ -763,6 +802,13 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         totalTime = findViewById(R.id.totalTime);
         volumeText = findViewById(R.id.volumeText);
         statusText = findViewById(R.id.statusText);
+        playbackDetailsPanel = findViewById(R.id.playbackDetailsPanel);
+        miniTitle = findViewById(R.id.miniTitle);
+        miniSubtitle = findViewById(R.id.miniSubtitle);
+        miniProgress = findViewById(R.id.miniProgress);
+        miniPlayButton = findViewById(R.id.miniPlayButton);
+        miniNextButton = findViewById(R.id.miniNextButton);
+        miniExpandButton = findViewById(R.id.miniExpandButton);
         updateDownloadHint = findViewById(R.id.updateDownloadHint);
         episodeList = findViewById(R.id.episodeList);
         seekBar = findViewById(R.id.seekBar);
@@ -791,6 +837,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private void configureUi() {
         configureSearch();
         moreMenuButton.setOnClickListener(v -> showMoreMenu());
+        miniPlayButton.setOnClickListener(v -> playButton.performClick());
+        miniNextButton.setOnClickListener(v -> nextButton.performClick());
+        miniExpandButton.setOnClickListener(v -> setPlayerExpanded(!playerExpanded));
+        setPlayerExpanded(playerExpanded);
         liveAutoSwitch.setChecked(LiveRadioScheduler.enabled(this));
         updateLiveRadioHint();
         liveAutoSwitch.setOnCheckedChangeListener((button, enabled) -> {
@@ -825,6 +875,16 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
             @Override public boolean isListened(Episode episode) {
                 return MainActivity.this.isListened(episode);
+            }
+
+            @Override public long savedPositionMs(Episode episode) {
+                if (episode == null || episode.id == null) return 0L;
+                long fallback = episode.id.equals(prefs.getString("session_episode_id", ""))
+                        ? prefs.getLong("session_position_ms", 0L) : 0L;
+                long position = Math.max(0L, prefs.getLong(
+                        "episode_resume_ms_" + episode.id, fallback));
+                return episode.durationMs > 0L
+                        && position >= episode.durationMs - 1500L ? 0L : position;
             }
 
             @Override public void toggleFavorite(Episode episode) {
@@ -1377,10 +1437,15 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         menu.setGravity(Gravity.END);
         String searchLabel = searchPanel.getVisibility() == View.VISIBLE
                 ? "⌕ Chiudi ricerca" : "⌕ Cerca puntate";
-        menu.getMenu().add(0, MENU_SEARCH, 0, searchLabel);
+        // Sections: Catalogo, Riproduzione, App. Dividers on Android 9+.
+        if (Build.VERSION.SDK_INT >= 28) {
+            menu.getMenu().setGroupDividerEnabled(true);
+        }
+        menu.getMenu().add(1, MENU_SEARCH, 0, searchLabel);
+        menu.getMenu().add(1, MENU_HISTORY, 1, "◷ Cronologia d'ascolto");
 
         int queued = bound && service != null ? service.getUpNextIds().size() : 0;
-        menu.getMenu().add(0, MENU_QUEUE, 1,
+        menu.getMenu().add(2, MENU_QUEUE, 2,
                 "☷ Coda di riproduzione" + (queued > 0 ? " (" + queued + ")" : ""));
 
         String sleepLabel = "☾ Timer sonno";
@@ -1393,9 +1458,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                         (remaining + 59_999L) / 60_000L) + " min";
             }
         }
-        menu.getMenu().add(0, MENU_SLEEP, 2, sleepLabel);
-        menu.getMenu().add(0, MENU_HISTORY, 3, "◷ Cronologia d'ascolto");
-        menu.getMenu().add(0, MENU_UPDATE, 4, "↻ Controlla aggiornamenti");
+        menu.getMenu().add(2, MENU_SLEEP, 3, sleepLabel);
+        menu.getMenu().add(3, MENU_UPDATE, 4, "↻ Controlla aggiornamenti");
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case MENU_SEARCH:
@@ -1645,6 +1709,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         if (selectedEpisode == null) return;
         if (adapter != null) adapter.setSelectedEpisodeId(selectedEpisode.id);
         selectedTitle.setText(selectedEpisode.title);
+        if (miniTitle != null) miniTitle.setText(selectedEpisode.title);
+        miniDurationMs = selectedEpisode.durationMs;
         String meta = selectedEpisode.dateDisplay
                 + (selectedEpisode.durationMs > 0 ? "  ·  " + formatTime(selectedEpisode.durationMs) : "");
         if (isListened(selectedEpisode)) {
@@ -1656,6 +1722,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             currentTime.setText("0:00");
             totalTime.setText(formatTime(knownDurationMs));
             seekBar.setProgress(0);
+            updateMiniProgress(0L, knownDurationMs);
+        } else if (miniSubtitle != null) {
+            miniSubtitle.setText(selectedEpisode.dateDisplay + " · "
+                    + formatTime(miniDurationMs));
         }
     }
 
@@ -2029,7 +2099,13 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     }
 
     @Override public void onPlaybackState(boolean playing, boolean prepared) {
-        postUi(() -> playButton.setText(playing ? "❚❚" : "▶"));
+        postUi(() -> {
+            miniPlaying = playing;
+            playButton.setText(playing ? "❚❚" : "▶");
+            miniPlayButton.setText(playing ? "❚❚" : "▶");
+            miniPlayButton.setContentDescription(playing ? "Metti in pausa" : "Riproduci");
+            updateMiniProgress(miniPositionMs, knownDurationMs);
+        });
     }
 
     @Override public void onPosition(long positionMs, long durationMs) {
@@ -2041,6 +2117,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                 currentTime.setText(formatTime(positionMs));
             }
             totalTime.setText(formatTime(knownDurationMs));
+            updateMiniProgress(positionMs, knownDurationMs);
         });
     }
 

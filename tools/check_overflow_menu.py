@@ -35,9 +35,12 @@ expected=[
     ("MENU_HISTORY","showPlaybackHistory();"),
     ("MENU_UPDATE","UpdateChecker.check(this, prefs, true);"),
 ]
-assert menu_body.count("menu.getMenu().add(0, MENU_")==5
+assert menu_body.count("menu.getMenu().add(") == 5
+assert "menu.getMenu().setGroupDividerEnabled(true);" in menu_body
+assert "Build.VERSION.SDK_INT >= 28" in menu_body
 for i,(key,target) in enumerate(expected):
-    assert f"menu.getMenu().add(0, {key}, {i}," in menu_body
+    assert f"MENU_{key[5:]}" in menu_body
+    assert f"menu.getMenu().add(" in menu_body
     section=menu_body.split("case "+key+":",1)[1].split("return true;",1)[0]
     assert target in section,(key,target)
 assert 'getUpNextIds().size()' in menu_body

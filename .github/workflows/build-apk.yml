@@ -111,9 +111,9 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # La base 42500 della v4.25 supera tutte le build 424xx già pubblicate.
-          code = 42500 + int(os.environ['GITHUB_RUN_NUMBER'])
-          assert code > 42457 and code < 2100000000
+          # La base 50000 della v5.0 supera tutte le precedenti release 4.x.
+          code = 50000 + int(os.environ['GITHUB_RUN_NUMBER'])
+          assert code > 42500 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
           path.write_text(gradle, encoding='utf-8')
@@ -214,6 +214,10 @@ jobs:
       - name: Verifica menu a tendina con cinque funzioni
         shell: bash
         run: python3 tools/check_overflow_menu.py
+
+      - name: Verifica mini-player, progressi e menu v5.0
+        shell: bash
+        run: python3 tools/check_v5_compact_ui.py
 
       - name: Compila release (non firmata)
         shell: bash

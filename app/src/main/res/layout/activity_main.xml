@@ -159,12 +159,16 @@
         android:background="@drawable/panel_bg"
         android:divider="@color/divider"
         android:dividerHeight="1dp"
+        android:cacheColorHint="@android:color/transparent"
+        android:contentDescription="Catalogo puntate, tieni premuto per la coda"
         android:listSelector="@color/listSelector" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:id="@+id/playbackDetailsPanel"
+        android:layout_marginTop="6dp"
+        android:visibility="gone"
         android:background="@drawable/panel_bg"
         android:orientation="vertical"
         android:padding="12dp">
@@ -425,5 +429,95 @@
             android:textColor="@color/textSecondary"
             android:textSize="12sp"
             android:maxLines="2" />
+    </LinearLayout>
+    <!-- Permanent compact player beneath the episode list and optional details. -->
+    <LinearLayout
+        android:id="@+id/miniPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/header_bg"
+        android:orientation="vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="8dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="6dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingRight="5dp"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/miniTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Seleziona una puntata"
+                    android:textColor="@color/headerText"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"/>
+                <TextView
+                    android:id="@+id/miniSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Pronto per l'ascolto"
+                    android:textColor="@color/headerText"
+                    android:alpha="0.82"
+                    android:textSize="11sp"
+                    android:maxLines="1"
+                    android:ellipsize="end"/>
+            </LinearLayout>
+            <Button
+                android:id="@+id/miniPlayButton"
+                style="@style/HeaderButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:minWidth="44dp"
+                android:minHeight="44dp"
+                android:padding="0dp"
+                android:text="▶"
+                android:textSize="19sp"
+                android:contentDescription="Riproduci o metti in pausa"/>
+            <Button
+                android:id="@+id/miniNextButton"
+                style="@style/HeaderButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:minWidth="44dp"
+                android:minHeight="44dp"
+                android:padding="0dp"
+                android:text="⏭"
+                android:textSize="18sp"
+                android:contentDescription="Puntata successiva"/>
+            <Button
+                android:id="@+id/miniExpandButton"
+                style="@style/HeaderButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:minWidth="44dp"
+                android:minHeight="44dp"
+                android:padding="0dp"
+                android:text="⌃"
+                android:textSize="22sp"
+                android:contentDescription="Espandi controlli completi"/>
+        </LinearLayout>
+        <ProgressBar
+            android:id="@+id/miniProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginTop="4dp"
+            android:max="1000"
+            android:progress="0"
+            android:indeterminate="false"
+            android:progressTint="@color/accent"
+            android:progressBackgroundTint="@color/progressTrack"/>
     </LinearLayout>
 </LinearLayout>

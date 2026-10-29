@@ -4,7 +4,18 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v4.25 – Sessione Media3 e controlli esterni**
+**v5.0 – Nuova interfaccia compatta con mini-player**
+
+## Novità della v5.0
+
+- **Mini-player sempre visibile in basso**, anche durante lo scorrimento del catalogo: titolo dell'episodio, tempo trascorso/durata, stato Play/Pausa, Successiva e barra di avanzamento.
+- **Controlli completi espandibili** con il tasto ⌃/⌄ nel mini-player. Per impostazione predefinita rimangono chiusi, lasciando spazio alla lista. La scelta viene memorizzata.
+- **Elenco più leggibile** con titolo da 16sp, separazione e spaziatura migliorate, progresso in ogni riga: da ascoltare, percentuale con punto di ripresa oppure ascoltata.
+- Il progresso degli episodi deriva dai **segnalibri originali** (`episode_resume_ms_`) e dallo stato del player Media3, senza cancellare i dati preesistenti né introdurre duplicazioni.
+- Aggiornamento della barra per la puntata corrente ottimizzato: l'elenco non viene ridisegnato ogni mezzo secondo, ma soltanto al cambiamento della percentuale.
+- **Menu ⋮ organizzato** in tre gruppi separati (Catalogo: Ricerca e Cronologia; Riproduzione: Coda e Timer; App: Aggiornamenti), con indicazione della coda e del timer attivo. Su Android 9+ le sezioni sono separate visivamente.
+- Conservati Shuffle, preferiti, download offline, diretta, velocità, ricerca, cronologia, coda, timer, notifiche Media3 e aggiornamenti automatici.
+- Versione 5.0 resta compatibile con il pacchetto e la firma delle versioni precedenti: è un normale aggiornamento.
 
 ## Novità della v4.25
 
@@ -317,8 +328,8 @@ Il builder usa Java 17, Gradle 8.9 e Android SDK 35 e mantiene il sistema di fir
 ## Pacchetto Android
 
 - Application ID: `it.successoplayer.app`
-- Versione: `4.20`
-- Version code base: `42000`
+- Versione: `5.0`
+- Version code base: `50000`
 
 I pacchetti ZIP pronti sono disponibili nella cartella [`dist`](dist).
 

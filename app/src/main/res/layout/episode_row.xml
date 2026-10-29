@@ -6,8 +6,8 @@
     android:gravity="center_vertical"
     android:paddingLeft="12dp"
     android:paddingRight="6dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
     android:background="@color/panel">
 
     <LinearLayout
@@ -21,7 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/textPrimary"
-            android:textSize="15sp"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:maxLines="2"
             android:ellipsize="end" />
 
@@ -34,6 +35,34 @@
             android:textSize="12sp"
             android:maxLines="1"
             android:ellipsize="end" />
+        <LinearLayout
+            android:id="@+id/rowProgressContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+            <ProgressBar
+                android:id="@+id/rowProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="4dp"
+                android:layout_weight="1"
+                android:max="1000"
+                android:progress="0"
+                android:indeterminate="false"
+                android:progressTint="@color/accent"
+                android:progressBackgroundTint="@color/progressTrack"/>
+            <TextView
+                android:id="@+id/rowProgressLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:textSize="11sp"
+                android:textColor="@color/textSecondary"
+                android:text="0%"/>
+        </LinearLayout>
     </LinearLayout>
 
     <TextView
