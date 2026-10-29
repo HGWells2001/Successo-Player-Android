@@ -147,12 +147,8 @@ public final class AudioPlaybackService extends MediaSessionService {
 
         volumePercent = prefs.getInt("volume", 85);
 
-        int speedIndex = Math.max(
-                0,
-                Math.min(5, prefs.getInt("speedIndex", 2))
-        );
-        float[] speeds = {0.75f, 0.90f, 1.00f, 1.25f, 1.50f, 2.00f};
-        speed = speeds[speedIndex];
+        // Always start at normal playback speed, ignoring obsolete speedIndex values.
+        speed = 1f;
 
         shuffleEnabled = prefs.getBoolean("shuffle_enabled", false);
         restoreUpNext();

@@ -14,7 +14,8 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 - Il progresso degli episodi deriva dai **segnalibri originali** (`episode_resume_ms_`) e dallo stato del player Media3, senza cancellare i dati preesistenti né introdurre duplicazioni.
 - Aggiornamento della barra per la puntata corrente ottimizzato: l'elenco non viene ridisegnato ogni mezzo secondo, ma soltanto al cambiamento della percentuale.
 - **Menu ⋮ organizzato** in tre gruppi separati (Catalogo: Ricerca e Cronologia; Riproduzione: Coda e Timer; App: Aggiornamenti), con indicazione della coda e del timer attivo. Su Android 9+ le sezioni sono separate visivamente.
-- Conservati Shuffle, preferiti, download offline, diretta, velocità, ricerca, cronologia, coda, timer, notifiche Media3 e aggiornamenti automatici.
+- Conservati Shuffle, preferiti, download offline, diretta, ricerca, cronologia, coda, timer, notifiche Media3 e aggiornamenti automatici.
+- Eliminato completamente il menu a tendina della velocità: le puntate vengono riprodotte a 1×, senza recuperare vecchie preferenze di velocità.
 - Versione 5.0 resta compatibile con il pacchetto e la firma delle versioni precedenti: è un normale aggiornamento.
 
 ## Novità della v4.25

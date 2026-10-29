@@ -285,11 +285,6 @@
                     android:text="🔀"
                     android:contentDescription="Attiva riproduzione casuale" />
 
-                <Spinner
-                    android:id="@+id/speedSpinner"
-                    android:layout_width="110dp"
-                    android:layout_height="48dp"
-                    android:layout_marginLeft="10dp" />
             </LinearLayout>
         </HorizontalScrollView>
 

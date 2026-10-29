@@ -33,14 +33,11 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.ToggleButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -160,7 +157,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
     private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, favoritesFilterButton, unlistenedFilterButton;
-    private Spinner speedSpinner;
     private ToggleButton liveAutoSwitch;
     private boolean syncingLiveSwitch;
     private ProgressBar loadingProgress, downloadProgress;
@@ -182,7 +178,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
             service.setListener(MainActivity.this);
             service.setVolumePercent(volumeBar.getProgress());
-            service.setSpeed(selectedSpeed());
+            // The speed selector was removed; normalize existing sessions to 1×.
+            service.setSpeed(1f);
             service.setShuffleEnabled(shuffleEnabled);
 
             synchronizePlaybackService();
@@ -827,7 +824,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         clearSearchButton = findViewById(R.id.clearSearchButton);
         favoritesFilterButton = findViewById(R.id.favoritesFilterButton);
         unlistenedFilterButton = findViewById(R.id.unlistenedFilterButton);
-        speedSpinner = findViewById(R.id.speedSpinner);
         loadingProgress = findViewById(R.id.loadingProgress);
         downloadProgress = findViewById(R.id.downloadProgress);
         downloadProgressText = findViewById(R.id.downloadProgressText);
@@ -1044,20 +1040,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             }
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        String[] speeds = {"0.75×", "0.90×", "1.00×", "1.25×", "1.50×", "2.00×"};
-        ArrayAdapter<String> speedAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, speeds);
-        speedAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        speedSpinner.setAdapter(speedAdapter);
-        int speedIndex = Math.max(0, Math.min(speeds.length - 1, prefs.getInt("speedIndex", 2)));
-        speedSpinner.setSelection(speedIndex);
-        speedSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                prefs.edit().putInt("speedIndex", position).apply();
-                if (bound) service.setSpeed(selectedSpeed());
-            }
-            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         downloadButton.setOnClickListener(v -> startDownload(selectedEpisode));
@@ -1728,13 +1710,6 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                     + formatTime(miniDurationMs));
         }
     }
-
-    private float selectedSpeed() {
-        float[] v = {0.75f, 0.90f, 1.00f, 1.25f, 1.50f, 2.00f};
-        int p = speedSpinner.getSelectedItemPosition();
-        return v[Math.max(0, Math.min(v.length - 1, p))];
-    }
-
 
     /**
      * Mostra la sottocartella pubblica in cui il DownloadManager salva

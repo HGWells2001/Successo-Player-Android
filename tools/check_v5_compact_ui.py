@@ -9,6 +9,7 @@ root=Path(__file__).resolve().parents[1]
 java=root/"app/src/main/java/it/successoplayer/app"
 main=(java/"MainActivity.java").read_text(encoding="utf-8")
 adapter=(java/"EpisodeAdapter.java").read_text(encoding="utf-8")
+audio_service=(java/"AudioPlaybackService.java").read_text(encoding="utf-8")
 layout=ET.parse(root/"app/src/main/res/layout/activity_main.xml")
 row=ET.parse(root/"app/src/main/res/layout/episode_row.xml")
 ns="{http://schemas.android.com/apk/res/android}"
@@ -16,6 +17,11 @@ ids={x.attrib.get(ns+"id"):x for x in layout.iter() if x.attrib.get(ns+"id")}
 rows={x.attrib.get(ns+"id"):x for x in row.iter() if x.attrib.get(ns+"id")}
 children=list(layout.getroot())
 assert ids["@+id/episodeList"] in children
+assert "@+id/speedSpinner" not in ids, "the playback speed dropdown must stay removed"
+assert "speedSpinner" not in main and "selectedSpeed()" not in main
+assert "speedIndex" not in main, "the removed preference must not be written by the activity"
+assert "speedIndex" not in audio_service.split("public void setSpeed(", 1)[0], "old speed prefs must not be restored"
+assert "service.setSpeed(1f);" in main, "existing services must return to normal speed"
 assert ids["@+id/playbackDetailsPanel"] in children
 assert ids["@+id/miniPlayer"] in children
 assert children.index(ids["@+id/episodeList"]) < children.index(ids["@+id/playbackDetailsPanel"]) < children.index(ids["@+id/miniPlayer"])
