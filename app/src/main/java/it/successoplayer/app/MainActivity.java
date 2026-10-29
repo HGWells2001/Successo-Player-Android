@@ -1264,6 +1264,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                         ? "Mostra tutte le puntate"
                         : "Mostra solo le puntate preferite"
         );
+        favoritesFilterButton.setBackgroundResource(
+                favoritesOnly ? R.drawable.shuffle_active_bg : R.drawable.button_bg);
+        favoritesFilterButton.setTextColor(getResources().getColor(
+                favoritesOnly ? R.color.headerText : R.color.textPrimary, getTheme()));
     }
 
     private void updateUnlistenedFilterButton() {

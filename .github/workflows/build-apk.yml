@@ -111,8 +111,8 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # La base 50000 della v5.0 supera tutte le precedenti release 4.x.
-          code = 50000 + int(os.environ['GITHUB_RUN_NUMBER'])
+          # La base v5.1 supera ogni APK della v5.0, conservando il versionCode crescente.
+          code = 51000 + int(os.environ['GITHUB_RUN_NUMBER'])
           assert code > 42500 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
@@ -219,6 +219,10 @@ jobs:
         shell: bash
         run: python3 tools/check_v5_compact_ui.py
 
+      - name: Verifica design v5.1 e accessibilita dei controlli
+        shell: bash
+        run: python3 tools/check_v51_visual_design.py
+
       - name: Compila release (non firmata)
         shell: bash
         run: gradle --no-daemon --stacktrace :app:assembleRelease
@@ -283,6 +287,8 @@ jobs:
 
           APK Android firmato con la chiave permanente del progetto.
 
+          - v5.1: palette giorno/notte rinnovata, catalogo a schede e mini-player più leggibile.
+          - Eliminata la tendina della velocità; riproduzione a 1×.
           - Posizione di ascolto indipendente per ciascuna puntata.
           - MediaSessionService: sessione e notifiche native Media3 per Bluetooth e lockscreen.
           - Puntate su Media3/ExoPlayer 1.11.1, con riconnessioni limitate e ripresa dal segnalibro.

@@ -72,6 +72,7 @@ public final class EpisodeAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.episode_row, parent, false);
             h = new ViewHolder();
+            h.activeMark = convertView.findViewById(R.id.rowActiveMark);
             h.title = convertView.findViewById(R.id.rowTitle);
             h.meta = convertView.findViewById(R.id.rowMeta);
             h.favorite = convertView.findViewById(R.id.rowFavorite);
@@ -86,7 +87,8 @@ public final class EpisodeAdapter extends BaseAdapter {
         Episode e = items.get(position);
         boolean selected = e.id != null && e.id.equals(selectedEpisodeId);
         convertView.setBackgroundResource(
-                selected ? R.drawable.episode_selected_bg : R.color.panel);
+                selected ? R.drawable.episode_selected_bg : R.drawable.episode_card_bg);
+        h.activeMark.setVisibility(selected ? View.VISIBLE : View.INVISIBLE);
         h.title.setTypeface(null, selected ? Typeface.BOLD : Typeface.NORMAL);
         h.title.setText(e.title);
 
@@ -135,6 +137,7 @@ public final class EpisodeAdapter extends BaseAdapter {
     }
 
     private static final class ViewHolder {
+        View activeMark;
         TextView title;
         TextView meta;
         TextView favorite;

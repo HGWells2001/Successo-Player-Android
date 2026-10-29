@@ -10,8 +10,8 @@ android {
         applicationId 'it.successoplayer.app'
         minSdk 26
         targetSdk 35
-        versionCode 50000
-        versionName '5.0'
+        versionCode 51000
+        versionName '5.1'
     }
 
     buildTypes {

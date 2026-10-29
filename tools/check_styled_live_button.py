@@ -52,6 +52,6 @@ assert items[0].attrib[ns + "drawable"] == "@drawable/accent_button_bg"
 assert items[1].attrib[ns + "drawable"] == "@drawable/button_bg"
 color = list(ET.parse(palette).getroot())
 assert color[0].attrib[ns + "state_checked"] == "true"
-assert color[0].attrib[ns + "color"] == "@color/headerText"
+assert color[0].attrib[ns + "color"] == "@color/onAccent"
 assert color[1].attrib[ns + "color"] == "@color/textPrimary"
 print("OK: live info inside unchanged 48dp button, no extra UI below.")

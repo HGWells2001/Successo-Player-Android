@@ -4,7 +4,18 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
-**v5.0 – Nuova interfaccia compatta con mini-player**
+**v5.1 – Restyling compatto, schede puntate e mini-player raffinato**
+
+## Novità della v5.1
+
+- **Temi giorno/notte rinnovati**: verde bosco, carta chiara, accenti in ottone e contrasti ottimizzati.
+- **Elenco puntate a schede** con spazio tra gli episodi, titoli più curati, barre di progresso sottili e indicatore verticale per la puntata selezionata.
+- **Mini-player sempre visibile**: icona musicale, pulsante Play/Pausa prioritario, comandi secondari più discreti e avanzamento dorato, senza nuovi pannelli invasivi.
+- **Header e filtri armonizzati**: caratteri più leggibili, marca verticale, icona ⋮ discreta, filtri evidenziati solo se attivi.
+- **Riproduzione a 1×**: il vecchio selettore della velocità resta rimosso. Shuffle, preferiti, diretta, Media3, download e timer invariati.
+- **Aggiornamento sul telefono**: versionCode base 51000, superiore alle build 5.0, APK distribuito tramite GitHub Releases con la firma permanente.
+
+## Novità della v5.0
 
 ## Novità della v5.0
 
