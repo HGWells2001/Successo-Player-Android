@@ -1,80 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingLeft="12dp"
-    android:paddingRight="6dp"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp"
-    android:background="@color/panel">
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/rowTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/textPrimary"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:maxLines="2"
-            android:ellipsize="end" />
-
-        <TextView
-            android:id="@+id/rowMeta"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:textColor="@color/textSecondary"
-            android:textSize="12sp"
-            android:maxLines="1"
-            android:ellipsize="end" />
-        <LinearLayout
-            android:id="@+id/rowProgressContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="gone">
-            <ProgressBar
-                android:id="@+id/rowProgress"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="horizontal" android:gravity="center_vertical"
+    android:paddingLeft="10dp" android:paddingRight="6dp"
+    android:paddingTop="11dp" android:paddingBottom="11dp"
+    android:background="@drawable/episode_card_bg">
+    <View android:id="@+id/rowActiveMark" android:layout_width="3dp"
+        android:layout_height="36dp" android:layout_marginRight="10dp"
+        android:background="@drawable/row_active_mark_bg"
+        android:visibility="invisible" android:importantForAccessibility="no" />
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:orientation="vertical">
+        <TextView android:id="@+id/rowTitle" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textColor="@color/textPrimary"
+            android:textSize="16sp" android:fontFamily="sans-serif-medium"
+            android:maxLines="2" android:ellipsize="end" />
+        <TextView android:id="@+id/rowMeta" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="4dp"
+            android:textColor="@color/textSecondary" android:textSize="12sp"
+            android:maxLines="1" android:ellipsize="end" />
+        <LinearLayout android:id="@+id/rowProgressContainer"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="7dp" android:orientation="horizontal"
+            android:gravity="center_vertical" android:visibility="gone">
+            <ProgressBar android:id="@+id/rowProgress"
                 style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="0dp"
-                android:layout_height="4dp"
-                android:layout_weight="1"
-                android:max="1000"
-                android:progress="0"
-                android:indeterminate="false"
-                android:progressTint="@color/accent"
-                android:progressBackgroundTint="@color/progressTrack"/>
-            <TextView
-                android:id="@+id/rowProgressLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:textSize="11sp"
-                android:textColor="@color/textSecondary"
-                android:text="0%"/>
+                android:layout_width="0dp" android:layout_height="3dp"
+                android:layout_weight="1" android:max="1000" android:progress="0"
+                android:indeterminate="false" android:progressTint="@color/accent"
+                android:progressBackgroundTint="@color/progressTrack" />
+            <TextView android:id="@+id/rowProgressLabel" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginLeft="9dp"
+                android:textSize="11sp" android:textColor="@color/textSecondary" android:text="0%" />
         </LinearLayout>
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/rowFavorite"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:gravity="center"
-        android:text="☆"
-        android:textSize="27sp"
-        android:textColor="@color/favorite"
+    <TextView android:id="@+id/rowFavorite" android:layout_width="48dp"
+        android:layout_height="48dp" android:gravity="center" android:text="☆"
+        android:textSize="26sp" android:textColor="@color/favorite"
         android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="false"
+        android:clickable="true" android:focusable="false"
         android:contentDescription="Aggiungi ai preferiti" />
 </LinearLayout>
