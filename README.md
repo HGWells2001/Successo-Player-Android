@@ -4,6 +4,18 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
+**v5.2 – Icone vettoriali personalizzate per i comandi**
+
+## Novità della v5.2
+
+- **Tre icone vettoriali originali** al posto dei simboli Unicode/emoji: Download, Libreria degli episodi scaricati e Shuffle.
+- Tratto uniforme e arrotondato, stile coerente con i pulsanti verde bosco e rame, senza dipendenza dal font emoji di Android.
+- Shuffle segnala l'attivazione tramite superficie verde e contrasto dell'icona, senza aggiungere il testo «ON».
+- Dimensione touch di 48dp invariata, accessibilità mantenuta, nessuna modifica alla logica dei download o dell'ascolto.
+- APK versione 5.2 firmato con la stessa chiave; aggiornamento nell'app tramite GitHub Releases.
+
+## Novità della v5.1
+
 **v5.1 – Restyling compatto, schede puntate e mini-player raffinato**
 
 ## Novità della v5.1

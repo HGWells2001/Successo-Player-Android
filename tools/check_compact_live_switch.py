@@ -10,7 +10,9 @@ assert not any(x in activity+service+xml for x in ["liveListenButton","liveStopB
 for item in ('@+id/downloadButton','@+id/openDownloadsButton'):
     frag=xml[xml.index(item):][:430]
     assert 'android:layout_width="48dp"' in frag and 'android:layout_height="48dp"' in frag
-assert 'android:text="⬇"' in xml and 'android:text="📂"' in xml
+assert 'android:src="@drawable/ic_download_art"' in xml
+assert 'android:src="@drawable/ic_library_art"' in xml
+assert 'android:text="⬇"' not in xml and 'android:text="📂"' not in xml
 assert '<ToggleButton' in xml
 assert 'android:textOn="● Diretta programma"' in xml
 assert 'android:textOff="○ Diretta programma"' in xml

@@ -34,6 +34,8 @@ import android.widget.EditText;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.content.res.ColorStateList;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.PopupMenu;
@@ -156,7 +158,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private Button clearSearchButton, moreMenuButton;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, shuffleButton, downloadButton, openDownloadsButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, favoritesFilterButton, unlistenedFilterButton;
+    private ImageButton shuffleButton, downloadButton, openDownloadsButton;
     private ToggleButton liveAutoSwitch;
     private boolean syncingLiveSwitch;
     private ProgressBar loadingProgress, downloadProgress;
@@ -1556,20 +1559,18 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private void updateShuffleButton() {
         if (shuffleButton == null) return;
 
-        shuffleButton.setText(shuffleEnabled ? "🔀 ON" : "🔀");
         shuffleButton.setContentDescription(
                 shuffleEnabled
                         ? "Disattiva riproduzione casuale"
                         : "Attiva riproduzione casuale"
         );
-
-        if (shuffleEnabled) {
-            shuffleButton.setBackgroundResource(R.drawable.shuffle_active_bg);
-            shuffleButton.setTextColor(getResources().getColor(R.color.headerText, getTheme()));
-        } else {
-            shuffleButton.setBackgroundResource(R.drawable.button_bg);
-            shuffleButton.setTextColor(getResources().getColor(R.color.textPrimary, getTheme()));
-        }
+        shuffleButton.setActivated(shuffleEnabled);
+        shuffleButton.setBackgroundResource(shuffleEnabled
+                ? R.drawable.shuffle_active_bg : R.drawable.button_bg);
+        shuffleButton.setImageTintList(ColorStateList.valueOf(
+                getResources().getColor(
+                        shuffleEnabled ? R.color.headerText : R.color.textPrimary,
+                        getTheme())));
     }
 
     private Episode randomEpisodeExcluding(Episode excluded) {

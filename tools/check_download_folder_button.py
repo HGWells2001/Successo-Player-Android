@@ -10,7 +10,8 @@ layout = (root / "app/src/main/res/layout/activity_main.xml").read_text(encoding
 assert "openRaiButton" not in activity + layout
 assert "Apri su RaiPlay" not in layout
 assert '@+id/openDownloadsButton' in layout
-assert 'android:text="📂"' in layout
+assert 'android:src="@drawable/ic_library_art"' in layout
+assert 'android:text="📂"' not in layout
 assert 'android:contentDescription="Apri la libreria delle puntate scaricate"' in layout
 assert "openDownloadsButton.setOnClickListener(v -> openEpisodeDownloads());" in activity
 assert "OfflineEpisodeLibrary.scan(this, snapshot)" in activity

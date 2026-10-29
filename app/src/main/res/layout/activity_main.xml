@@ -296,13 +296,16 @@
                     android:layout_marginLeft="5dp"
                     android:text="⏭" />
 
-                <Button
+                <ImageButton
                     android:id="@+id/shuffleButton"
-                    style="@style/ControlButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_marginLeft="5dp"
-                    android:text="🔀"
+                    android:background="@drawable/button_bg"
+                    android:src="@drawable/ic_shuffle_art"
+                    android:tint="@color/textPrimary"
+                    android:scaleType="centerInside"
+                    android:padding="11dp"
                     android:contentDescription="Attiva riproduzione casuale" />
 
             </LinearLayout>
@@ -349,29 +352,27 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <Button
+            <ImageButton
                 android:id="@+id/downloadButton"
-                style="@style/AccentButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="0dp"
-                android:text="⬇"
-                android:textSize="22sp"
+                android:background="@drawable/accent_button_bg"
+                android:src="@drawable/ic_download_art"
+                android:tint="@color/onAccent"
+                android:scaleType="centerInside"
+                android:padding="11dp"
                 android:contentDescription="Scarica puntata selezionata" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/openDownloadsButton"
-                style="@style/ControlButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="0dp"
+                android:background="@drawable/button_bg"
+                android:src="@drawable/ic_library_art"
+                android:tint="@color/textPrimary"
+                android:scaleType="centerInside"
+                android:padding="11dp"
                 android:layout_marginLeft="7dp"
-                android:text="📂"
-                android:textSize="21sp"
                 android:contentDescription="Apri la libreria delle puntate scaricate" />
 
             <ToggleButton
