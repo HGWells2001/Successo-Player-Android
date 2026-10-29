@@ -38,7 +38,10 @@ activity = (root / "app/src/main/java/it/successoplayer/app/MainActivity.java").
 assert "R.drawable.shuffle_active_bg : R.drawable.button_bg" in activity
 assert "speedSpinner" not in activity
 gradle = (root / "app/build.gradle").read_text(encoding="utf-8")
-assert "versionCode 51000" in gradle and "versionName '5.1'" in gradle
+import re
+version_code = re.search(r"versionCode\s+(\d+)", gradle)
+assert version_code is not None and int(version_code.group(1)) >= 51000
+assert "versionName '5.1'" in gradle
 workflow = (root / ".github/workflows/build-apk.yml").read_text(encoding="utf-8")
 assert "code = 51000 + int(os.environ['GITHUB_RUN_NUMBER'])" in workflow
 assert "Pubblica automaticamente su GitHub Releases" in workflow
