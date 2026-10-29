@@ -23,7 +23,8 @@ assert 'service.setQueue(' in main
 assert 'shuffleEnabled ? visibleEpisodes : allEpisodes' in main
 assert "adapter.setSelectedEpisodeId(selectedEpisode.id);" in main
 assert "setSelectedEpisodeId(String id)" in adapter
-assert "selected ? R.drawable.episode_selected_bg : R.color.panel" in adapter
+assert "selected ? R.drawable.episode_selected_bg : R.drawable.episode_card_bg" in adapter
+assert "h.activeMark.setVisibility(selected ? View.VISIBLE : View.INVISIBLE);" in adapter
 assert "selected ? Typeface.BOLD : Typeface.NORMAL" in adapter
 ET.parse(root/"app/src/main/res/drawable/episode_selected_bg.xml")
 print("OK: shuffle track visible, scroll updated, selected row highlighted.")
