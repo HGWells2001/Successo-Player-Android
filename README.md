@@ -4,6 +4,18 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
+**v5.3.1 – Correzione selezione delle puntate**
+
+## Novità della v5.3.1
+
+- Corretto il problema introdotto in v5.3: toccare la scheda di una puntata seleziona e avvia nuovamente l'episodio.
+- La scheda inoltra in modo esplicito il tocco al listener originale del catalogo, anche in presenza dei nuovi pulsanti Dettagli e Preferiti.
+- Il tocco prolungato conserva le azioni Aggiungi alla coda, Riproduci come prossimo e Riproduci subito.
+- Gestione della posizione corrente delle righe dopo riordino e filtro, evitando selezioni errate con il riciclo delle viste.
+- Nessuna modifica al motore audio, ai segnalibri, ai dati locali o alla firma dell'APK.
+
+## Novità della v5.3
+
 **v5.3 – Sei miglioramenti per l'ascolto quotidiano**
 
 ## Novità della v5.3

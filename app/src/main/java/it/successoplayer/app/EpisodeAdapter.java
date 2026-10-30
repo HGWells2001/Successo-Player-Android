@@ -5,6 +5,7 @@ import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ProgressBar;
 import android.widget.ImageView;
@@ -170,6 +171,33 @@ public final class EpisodeAdapter extends BaseAdapter {
         h.info.setOnClickListener(v -> {
             if (favoriteHandler != null) favoriteHandler.showDetails(e);
         });
+
+        // A clickable ImageButton inside a ListView row can suppress the
+        // framework's normal OnItemClick event, even with focusable=false.
+        // Explicitly forward row taps to the existing activity listener.
+        // Resolve the live adapter position instead of capturing the recycled
+        // view's previous position so sorting/filtering cannot select the
+        // wrong episode. Child Info and Favorite clicks remain independent.
+        if (parent instanceof AdapterView) {
+            AdapterView<?> list = (AdapterView<?>) parent;
+            convertView.setOnClickListener(v -> {
+                int livePosition = list.getPositionForView(v);
+                if (livePosition >= 0 && livePosition < getCount()) {
+                    list.performItemClick(v, livePosition, getItemId(livePosition));
+                }
+            });
+            // Preserve long-press actions for queue/Play Next, which would
+            // otherwise be swallowed by the clickable row.
+            convertView.setOnLongClickListener(v -> {
+                int livePosition = list.getPositionForView(v);
+                AdapterView.OnItemLongClickListener listener =
+                        list.getOnItemLongClickListener();
+                return listener != null && livePosition >= 0
+                        && livePosition < getCount()
+                        && listener.onItemLongClick(
+                                list, v, livePosition, getItemId(livePosition));
+            });
+        }
 
         return convertView;
     }
