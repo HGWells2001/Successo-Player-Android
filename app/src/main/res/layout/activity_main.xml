@@ -135,6 +135,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:singleLine="true"
+            android:ellipsize="end"
             android:text="Catalogo"
             android:textColor="@color/textSecondary"
             android:textSize="12sp"
@@ -257,44 +259,64 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <Button
+                <ImageButton
                     android:id="@+id/previousButton"
-                    style="@style/ControlButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="⏮" />
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/button_bg"
+                    android:src="@drawable/ic_previous_art"
+                    android:tint="@color/textPrimary"
+                    android:scaleType="centerInside"
+                    android:padding="10dp"
+                    android:contentDescription="Puntata precedente" />
 
-                <Button
+                <ImageButton
                     android:id="@+id/rewindButton"
-                    style="@style/ControlButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_marginLeft="5dp"
-                    android:text="−30" />
+                    android:background="@drawable/button_bg"
+                    android:src="@drawable/ic_rewind30_art"
+                    android:tint="@color/textPrimary"
+                    android:scaleType="centerInside"
+                    android:padding="10dp"
+                    android:contentDescription="Torna indietro di 30 secondi" />
 
-                <Button
+                <ImageButton
                     android:id="@+id/playButton"
-                    style="@style/AccentButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_marginLeft="5dp"
-                    android:text="▶" />
+                    android:background="@drawable/accent_button_bg"
+                    android:src="@drawable/ic_play_art"
+                    android:tint="@color/onAccent"
+                    android:scaleType="centerInside"
+                    android:padding="10dp"
+                    android:contentDescription="Riproduci o metti in pausa" />
 
-                <Button
+                <ImageButton
                     android:id="@+id/forwardButton"
-                    style="@style/ControlButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_marginLeft="5dp"
-                    android:text="+30" />
+                    android:background="@drawable/button_bg"
+                    android:src="@drawable/ic_forward30_art"
+                    android:tint="@color/textPrimary"
+                    android:scaleType="centerInside"
+                    android:padding="10dp"
+                    android:contentDescription="Vai avanti di 30 secondi" />
 
-                <Button
+                <ImageButton
                     android:id="@+id/nextButton"
-                    style="@style/ControlButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_marginLeft="5dp"
-                    android:text="⏭" />
+                    android:background="@drawable/button_bg"
+                    android:src="@drawable/ic_next_art"
+                    android:tint="@color/textPrimary"
+                    android:scaleType="centerInside"
+                    android:padding="10dp"
+                    android:contentDescription="Puntata successiva" />
 
                 <ImageButton
                     android:id="@+id/shuffleButton"
@@ -318,11 +340,12 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🔊"
-                android:textSize="18sp" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_volume_art"
+                android:tint="@color/textSecondary"
+                android:contentDescription="Volume" />
 
             <SeekBar
                 android:id="@+id/volumeBar"
@@ -501,50 +524,47 @@
                     android:maxLines="1"
                     android:ellipsize="end"/>
             </LinearLayout>
-            <Button
+            <ImageButton
                 android:id="@+id/miniPlayButton"
-                style="@style/MiniPlayButton"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
-                android:minWidth="44dp"
-                android:minHeight="44dp"
-                android:padding="0dp"
-                android:text="▶"
-                android:textSize="19sp"
-                android:contentDescription="Riproduci o metti in pausa"/>
-            <Button
+                android:background="@drawable/mini_play_bg"
+                android:src="@drawable/ic_play_art"
+                android:tint="@color/onAccent"
+                android:scaleType="centerInside"
+                android:padding="10dp"
+                android:contentDescription="Riproduci o metti in pausa" />
+            <ImageButton
                 android:id="@+id/miniNextButton"
-                style="@style/HeaderButton"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
-                android:minWidth="44dp"
-                android:minHeight="44dp"
-                android:padding="0dp"
-                android:text="⏭"
-                android:textSize="18sp"
-                android:contentDescription="Puntata successiva"/>
-            <Button
+                android:background="@drawable/header_button_bg"
+                android:src="@drawable/ic_next_art"
+                android:tint="@color/headerText"
+                android:scaleType="centerInside"
+                android:padding="10dp"
+                android:contentDescription="Puntata successiva" />
+            <ImageButton
                 android:id="@+id/miniExpandButton"
-                style="@style/HeaderButton"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
-                android:minWidth="44dp"
-                android:minHeight="44dp"
-                android:padding="0dp"
-                android:text="⌃"
-                android:textSize="22sp"
-                android:contentDescription="Espandi controlli completi"/>
+                android:background="@drawable/header_button_bg"
+                android:src="@drawable/ic_chevron_up_art"
+                android:tint="@color/headerText"
+                android:scaleType="centerInside"
+                android:padding="10dp"
+                android:contentDescription="Espandi controlli completi" />
         </LinearLayout>
-        <ProgressBar
+        <SeekBar
             android:id="@+id/miniProgress"
-            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:layout_marginTop="7dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="2dp"
             android:max="1000"
             android:progress="0"
-            android:indeterminate="false"
             android:progressTint="@color/brandAccent"
-            android:progressBackgroundTint="@color/miniProgressTrack"/>
+            android:thumbTint="@color/brandAccent"
+            android:progressBackgroundTint="@color/miniProgressTrack"
+            android:contentDescription="Scorri per scegliere un punto della puntata" />
     </LinearLayout>
 </LinearLayout>
