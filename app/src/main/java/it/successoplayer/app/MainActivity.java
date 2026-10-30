@@ -173,6 +173,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private TextView downloadProgressText;
     private final Handler downloadHandler = new Handler(Looper.getMainLooper());
     private long activeDownloadId = -1L;
+    private boolean preparingDownload;
     private DownloadManager activeDownloadManager;
     private final Runnable downloadProgressPoller = this::updateDownloadProgress;
 
@@ -582,6 +583,14 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         }
         updateFavoritesFilterButton();
         updateUnlistenedFilterButton();
+        if (shortScreen && playerExpanded) {
+            // Temporarily compact the landscape layout without overwriting the
+            // user's remembered expanded setting for portrait orientation.
+            playerExpanded = false;
+            playbackDetailsPanel.setVisibility(View.GONE);
+            miniExpandButton.setImageResource(R.drawable.ic_chevron_up_art);
+            miniExpandButton.setContentDescription("Espandi controlli completi");
+        }
     }
 
     private void updateMiniProgress(long positionMs, long durationMs) {
@@ -1901,7 +1910,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         if (downloadButton == null) return;
         String id = selectedEpisode == null ? "" : selectedEpisode.id;
         boolean ready = !id.isEmpty() && offlineEpisodeIds.contains(id);
-        boolean active = activeDownloadId >= 0L;
+        boolean active = activeDownloadId >= 0L || preparingDownload;
         boolean downloading = active && id.equals(downloadingEpisodeId);
         boolean failed = !active && !id.isEmpty() && id.equals(failedDownloadEpisodeId);
         int icon = ready ? R.drawable.ic_offline_ready_art
@@ -2076,7 +2085,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             openEpisodeDownloads();
             return;
         }
-        if (activeDownloadId >= 0L) {
+        if (activeDownloadId >= 0L || preparingDownload) {
             toast("È già in corso un download.");
             return;
         }
@@ -2086,6 +2095,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_STORAGE);
             return;
         }
+        preparingDownload = true;
+        downloadingEpisodeId = ep.id == null ? "" : ep.id;
+        updateOfflineBadges();
+        refreshDownloadButtonState();
         setStatus("Preparo il download…", true);
         io.execute(() -> {
             try {
@@ -2106,7 +2119,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                 postUi(() -> beginDownloadProgress(dm, downloadId, ep.id));
             } catch (Exception e) {
                 postUi(() -> {
+                    preparingDownload = false;
+                    downloadingEpisodeId = "";
                     failedDownloadEpisodeId = ep.id == null ? "" : ep.id;
+                    updateOfflineBadges();
                     refreshDownloadButtonState();
                     setStatus("Download non riuscito: " + message(e), false);
                 });
@@ -2118,6 +2134,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                                       String episodeId) {
         activeDownloadManager = dm;
         activeDownloadId = downloadId;
+        preparingDownload = false;
         downloadingEpisodeId = episodeId == null ? "" : episodeId;
 
         prefs.edit()
