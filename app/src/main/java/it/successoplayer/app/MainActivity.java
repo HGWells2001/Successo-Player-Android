@@ -150,15 +150,17 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private EditText searchInput;
     private LinearLayout searchPanel, playbackDetailsPanel;
     private TextView miniTitle, miniSubtitle;
-    private Button miniPlayButton, miniNextButton, miniExpandButton;
-    private ProgressBar miniProgress;
+    private ImageButton miniPlayButton, miniNextButton, miniExpandButton;
+    private SeekBar miniProgress;
+    private boolean miniSeeking;
     private boolean playerExpanded;
     private boolean miniPlaying;
     private long miniPositionMs, miniDurationMs;
     private Button clearSearchButton, moreMenuButton;
     private ListView episodeList;
     private SeekBar seekBar, volumeBar;
-    private Button playButton, previousButton, nextButton, rewindButton, forwardButton, favoritesFilterButton, unlistenedFilterButton;
+    private Button favoritesFilterButton, unlistenedFilterButton;
+    private ImageButton playButton, previousButton, nextButton, rewindButton, forwardButton;
     private ImageButton shuffleButton, downloadButton, openDownloadsButton;
     private ToggleButton liveAutoSwitch;
     private boolean syncingLiveSwitch;
@@ -542,21 +544,47 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             playbackDetailsPanel.setVisibility(expanded ? View.VISIBLE : View.GONE);
         }
         if (miniExpandButton != null) {
-            miniExpandButton.setText(expanded ? "⌄" : "⌃");
+            miniExpandButton.setImageResource(expanded
+                    ? R.drawable.ic_chevron_down_art : R.drawable.ic_chevron_up_art);
             miniExpandButton.setContentDescription(expanded
                     ? "Riduci controlli completi" : "Espandi controlli completi");
         }
         if (prefs != null) prefs.edit().putBoolean("ui_player_expanded", expanded).apply();
     }
 
+    /** Keep the catalog readable on narrow phones and short landscape screens. */
+    private void adaptControlsToScreen() {
+        Configuration config = getResources().getConfiguration();
+        boolean compact = config.screenWidthDp < 380 || config.fontScale >= 1.25f;
+        boolean shortScreen = config.screenHeightDp < 450;
+        View artwork = findViewById(R.id.miniArtwork);
+        if (artwork != null) {
+            artwork.setVisibility(compact || shortScreen ? View.GONE : View.VISIBLE);
+        }
+        if (countText != null) {
+            countText.setSingleLine(true);
+            countText.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        }
+        if (miniTitle != null) miniTitle.setSingleLine(true);
+        if (shortScreen) {
+            View root = findViewById(R.id.rootLayout);
+            if (root != null) {
+                int edge = (int) (6f * getResources().getDisplayMetrics().density + 0.5f);
+                root.setPadding(edge, edge, edge, edge);
+            }
+        }
+        updateFavoritesFilterButton();
+        updateUnlistenedFilterButton();
+    }
+
     private void updateMiniProgress(long positionMs, long durationMs) {
         miniPositionMs = Math.max(0L, positionMs);
         if (durationMs > 0L) miniDurationMs = durationMs;
-        if (miniProgress != null) {
+        if (miniProgress != null && !miniSeeking) {
             miniProgress.setProgress(EpisodeProgress.thousandths(
                     miniPositionMs, miniDurationMs));
         }
-        if (miniSubtitle != null && selectedEpisode != null) {
+        if (miniSubtitle != null && selectedEpisode != null && !miniSeeking) {
             miniSubtitle.setText(formatTime(miniPositionMs) + " / "
                     + formatTime(miniDurationMs)
                     + (miniPlaying ? " · In ascolto" : " · In pausa"));
@@ -839,7 +867,38 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         miniPlayButton.setOnClickListener(v -> playButton.performClick());
         miniNextButton.setOnClickListener(v -> nextButton.performClick());
         miniExpandButton.setOnClickListener(v -> setPlayerExpanded(!playerExpanded));
+        miniProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar bar, int value, boolean fromUser) {
+                if (!fromUser || !miniSeeking || miniDurationMs <= 0L
+                        || selectedEpisode == null) return;
+                long preview = Math.round((value / (double) bar.getMax()) * miniDurationMs);
+                miniSubtitle.setText(formatTime(preview) + " / "
+                        + formatTime(miniDurationMs) + " · Scorri");
+            }
+
+            @Override public void onStartTrackingTouch(SeekBar bar) {
+                miniSeeking = miniDurationMs > 0L && selectedEpisode != null;
+            }
+
+            @Override public void onStopTrackingTouch(SeekBar bar) {
+                if (miniSeeking && miniDurationMs > 0L && bound && service != null
+                        && selectedEpisode != null) {
+                    Episode active = service.getCurrentEpisode();
+                    if (active != null && selectedEpisode.id.equals(active.id)) {
+                        long target = Math.round(
+                                (bar.getProgress() / (double) bar.getMax()) * miniDurationMs);
+                        service.seekTo(target);
+                        updateTimelineFromPosition(target, miniDurationMs);
+                    } else {
+                        toast("Avvia la puntata prima di spostare la posizione.");
+                    }
+                }
+                miniSeeking = false;
+                updateMiniProgress(miniPositionMs, miniDurationMs);
+            }
+        });
         setPlayerExpanded(playerExpanded);
+        adaptControlsToScreen();
         liveAutoSwitch.setChecked(LiveRadioScheduler.enabled(this));
         updateLiveRadioHint();
         liveAutoSwitch.setOnCheckedChangeListener((button, enabled) -> {
@@ -1261,7 +1320,11 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
     private void updateFavoritesFilterButton() {
         if (favoritesFilterButton == null) return;
-        favoritesFilterButton.setText(favoritesOnly ? "★ Preferite" : "☆ Tutte");
+        boolean compact = getResources().getConfiguration().screenWidthDp < 360
+                || getResources().getConfiguration().fontScale >= 1.25f;
+        favoritesFilterButton.setText(compact
+                ? (favoritesOnly ? "★" : "☆")
+                : (favoritesOnly ? "★ Preferite" : "☆ Tutte"));
         favoritesFilterButton.setContentDescription(
                 favoritesOnly
                         ? "Mostra tutte le puntate"
@@ -1276,7 +1339,11 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private void updateUnlistenedFilterButton() {
         if (unlistenedFilterButton == null) return;
 
-        unlistenedFilterButton.setText(unlistenedOnly ? "✓ Non ascoltate" : "○ Non ascoltate");
+        boolean compact = getResources().getConfiguration().screenWidthDp < 360
+                || getResources().getConfiguration().fontScale >= 1.25f;
+        unlistenedFilterButton.setText(compact
+                ? (unlistenedOnly ? "✓ Nuove" : "○ Nuove")
+                : (unlistenedOnly ? "✓ Non ascoltate" : "○ Non ascoltate"));
         unlistenedFilterButton.setContentDescription(
                 unlistenedOnly
                         ? "Disattiva il filtro delle puntate non ascoltate"
@@ -2080,10 +2147,20 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
     @Override public void onPlaybackState(boolean playing, boolean prepared) {
         postUi(() -> {
+            boolean changed = miniPlaying != playing;
             miniPlaying = playing;
-            playButton.setText(playing ? "❚❚" : "▶");
-            miniPlayButton.setText(playing ? "❚❚" : "▶");
+            playButton.setImageResource(playing
+                    ? R.drawable.ic_pause_art : R.drawable.ic_play_art);
+            miniPlayButton.setImageResource(playing
+                    ? R.drawable.ic_pause_art : R.drawable.ic_play_art);
+            playButton.setContentDescription(playing ? "Metti in pausa" : "Riproduci");
             miniPlayButton.setContentDescription(playing ? "Metti in pausa" : "Riproduci");
+            if (changed) {
+                miniPlayButton.animate().cancel();
+                miniPlayButton.setScaleX(0.9f);
+                miniPlayButton.setScaleY(0.9f);
+                miniPlayButton.animate().scaleX(1f).scaleY(1f).setDuration(170L).start();
+            }
             updateMiniProgress(miniPositionMs, knownDurationMs);
         });
     }
