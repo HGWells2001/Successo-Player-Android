@@ -14,7 +14,11 @@ assert "episodeList.setSelectionFromTop(index," in main
 assert "expectedId.equals(selectedEpisode.id)" in main
 callback=main[main.index("@Override public void onEpisode(Episode episode) {"):]
 callback=callback[:callback.index("@Override public void onListenedChanged(")]
-assert "if (shuffleEnabled) scrollToShuffleSelection();" in callback
+assert "if (shuffleEnabled && !originatedFromTap)" in callback
+assert "scrollToShuffleSelection();" in callback
+assert "episodeList.setSelection" not in callback, (
+    "La selezione manuale non deve mai portare la riga in cima."
+)
 auto=main[main.index("private void playEpisodeFromAutoMode(Episode episode) {"):]
 auto=auto[:auto.index("private void scrollToShuffleSelection()")]
 assert "scrollToShuffleSelection();" in auto
