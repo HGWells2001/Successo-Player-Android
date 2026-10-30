@@ -143,6 +143,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private final Random random = new Random();
     private final Set<String> favoriteIds = new HashSet<>();
     private final Set<String> listenedIds = new HashSet<>();
+    private final Set<String> offlineEpisodeIds = new HashSet<>();
+    private String downloadingEpisodeId = "";
+    private String failedDownloadEpisodeId = "";
     private long knownDurationMs;
     private Episode pendingDownload;
     private SharedPreferences prefs;
@@ -314,6 +317,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         bindPlaybackService();
         restoreDownloadProgressIfNeeded();
+        if (catalogLoaded) refreshOfflineLibraryState();
         // Prima il popup astronomico, poi il proverbio quotidiano.
         if (!showAstronomyPopupIfNeeded()) {
             showProverbPopupIfNeeded();
@@ -651,13 +655,16 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         if (activeDownloadId < 0L) return;
 
+        downloadingEpisodeId = prefs.getString("active_download_episode_id", "");
+        if (downloadingEpisodeId == null) downloadingEpisodeId = "";
         activeDownloadManager = (DownloadManager) getSystemService(
                 DOWNLOAD_SERVICE
         );
 
         if (activeDownloadManager == null) return;
 
-        downloadButton.setEnabled(false);
+        refreshDownloadButtonState();
+        updateOfflineBadges();
         downloadProgress.setVisibility(View.VISIBLE);
         downloadProgressText.setVisibility(View.VISIBLE);
 
@@ -1221,6 +1228,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
         synchronizePlaybackService();
         if (shuffleEnabled) scrollToShuffleSelection();
+        refreshOfflineLibraryState();
 
         setStatus(status, false);
     }
@@ -1845,6 +1853,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             meta += "  ·  ✓ Ascoltata";
         }
         selectedMeta.setText(meta);
+        refreshDownloadButtonState();
         if (freshSelection) {
             knownDurationMs = selectedEpisode.durationMs;
             currentTime.setText("0:00");
@@ -1861,6 +1870,51 @@ public final class MainActivity extends Activity implements AudioPlaybackService
      * Mostra la sottocartella pubblica in cui il DownloadManager salva
      * le puntate. Usa solo intent standard e nessun permesso globale ai file.
      */
+    /** Reconcile UI badges against successful DownloadManager records, off the UI thread. */
+    private void refreshOfflineLibraryState() {
+        if (!catalogLoaded || destroyed) return;
+        final List<Episode> snapshot = new ArrayList<>(allEpisodes);
+        io.execute(() -> {
+            List<OfflineEpisodeLibrary.Item> completed =
+                    OfflineEpisodeLibrary.scan(getApplicationContext(), snapshot);
+            Set<String> ids = new HashSet<>();
+            for (OfflineEpisodeLibrary.Item item : completed) {
+                if (item.episode != null && item.episode.id != null) {
+                    ids.add(item.episode.id);
+                }
+            }
+            postUi(() -> {
+                offlineEpisodeIds.clear();
+                offlineEpisodeIds.addAll(ids);
+                updateOfflineBadges();
+                refreshDownloadButtonState();
+            });
+        });
+    }
+
+    private void updateOfflineBadges() {
+        if (adapter != null) adapter.setOfflineState(
+                offlineEpisodeIds, downloadingEpisodeId);
+    }
+
+    private void refreshDownloadButtonState() {
+        if (downloadButton == null) return;
+        String id = selectedEpisode == null ? "" : selectedEpisode.id;
+        boolean ready = !id.isEmpty() && offlineEpisodeIds.contains(id);
+        boolean active = activeDownloadId >= 0L;
+        boolean downloading = active && id.equals(downloadingEpisodeId);
+        boolean failed = !active && !id.isEmpty() && id.equals(failedDownloadEpisodeId);
+        int icon = ready ? R.drawable.ic_offline_ready_art
+                : downloading ? R.drawable.ic_downloading_art
+                : failed ? R.drawable.ic_download_error_art : R.drawable.ic_download_art;
+        downloadButton.setImageResource(icon);
+        downloadButton.setEnabled(!active);
+        downloadButton.setContentDescription(ready ? "Scaricata: apri libreria offline"
+                : downloading ? "Download in corso"
+                : active ? "Attendi il download in corso"
+                : failed ? "Download fallito: riprova" : "Scarica puntata selezionata");
+    }
+
     private void openEpisodeDownloads() {
         if (!catalogLoaded) {
             toast("Attendi il caricamento del catalogo.");
@@ -1872,6 +1926,14 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             List<OfflineEpisodeLibrary.Item> downloaded =
                     OfflineEpisodeLibrary.scan(this, snapshot);
             postUi(() -> {
+                offlineEpisodeIds.clear();
+                for (OfflineEpisodeLibrary.Item item : downloaded) {
+                    if (item.episode != null && item.episode.id != null) {
+                        offlineEpisodeIds.add(item.episode.id);
+                    }
+                }
+                updateOfflineBadges();
+                refreshDownloadButtonState();
                 setStatus("Libreria offline pronta", false);
                 showOfflineLibrary(downloaded);
             });
@@ -1929,6 +1991,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                                             postUi(() -> {
                                                 toast(removed ? "Download eliminato" :
                                                         "Impossibile eliminare il download");
+                                                refreshOfflineLibraryState();
                                                 openEpisodeDownloads();
                                             });
                                         }))
@@ -2009,6 +2072,15 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             toast("Seleziona prima una puntata.");
             return;
         }
+        if (ep.id != null && offlineEpisodeIds.contains(ep.id)) {
+            openEpisodeDownloads();
+            return;
+        }
+        if (activeDownloadId >= 0L) {
+            toast("È già in corso un download.");
+            return;
+        }
+        failedDownloadEpisodeId = "";
         if (Build.VERSION.SDK_INT <= 28 && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             pendingDownload = ep;
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_STORAGE);
@@ -2031,22 +2103,30 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                         EPISODE_DOWNLOAD_FOLDER + "/" + filename);
                 DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                 long downloadId = dm.enqueue(req);
-                postUi(() -> beginDownloadProgress(dm, downloadId));
+                postUi(() -> beginDownloadProgress(dm, downloadId, ep.id));
             } catch (Exception e) {
-                postUi(() -> setStatus("Download non riuscito: " + message(e), false));
+                postUi(() -> {
+                    failedDownloadEpisodeId = ep.id == null ? "" : ep.id;
+                    refreshDownloadButtonState();
+                    setStatus("Download non riuscito: " + message(e), false);
+                });
             }
         });
     }
 
-    private void beginDownloadProgress(DownloadManager dm, long downloadId) {
+    private void beginDownloadProgress(DownloadManager dm, long downloadId,
+                                      String episodeId) {
         activeDownloadManager = dm;
         activeDownloadId = downloadId;
+        downloadingEpisodeId = episodeId == null ? "" : episodeId;
 
         prefs.edit()
                 .putLong("active_download_id", downloadId)
+                .putString("active_download_episode_id", downloadingEpisodeId)
                 .apply();
 
-        downloadButton.setEnabled(false);
+        updateOfflineBadges();
+        refreshDownloadButtonState();
         downloadProgress.setMax(100);
         downloadProgress.setProgress(0);
         downloadProgress.setIndeterminate(true);
@@ -2106,12 +2186,18 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         downloadHandler.removeCallbacks(downloadProgressPoller);
         activeDownloadId = -1L;
         activeDownloadManager = null;
+        if (!success) failedDownloadEpisodeId = downloadingEpisodeId;
+        else failedDownloadEpisodeId = "";
+        downloadingEpisodeId = "";
 
         prefs.edit()
                 .remove("active_download_id")
+                .remove("active_download_episode_id")
                 .apply();
 
-        downloadButton.setEnabled(true);
+        updateOfflineBadges();
+        refreshDownloadButtonState();
+        if (success) refreshOfflineLibraryState();
         setStatus(status, false);
 
         if (success) {
