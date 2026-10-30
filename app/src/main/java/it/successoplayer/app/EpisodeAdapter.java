@@ -7,6 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ProgressBar;
+import android.widget.ImageView;
+import android.widget.ImageButton;
+import android.content.res.ColorStateList;
+import java.util.Set;
+import java.util.HashSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -19,6 +24,7 @@ public final class EpisodeAdapter extends BaseAdapter {
         boolean isListened(Episode episode);
         long savedPositionMs(Episode episode);
         void toggleFavorite(Episode episode);
+        void showDetails(Episode episode);
     }
 
     private final LayoutInflater inflater;
@@ -29,6 +35,8 @@ public final class EpisodeAdapter extends BaseAdapter {
     private long currentPositionMs;
     private long currentDurationMs;
     private int currentPercent = -1;
+    private final Set<String> offlineEpisodeIds = new HashSet<>();
+    private String downloadingEpisodeId = "";
 
     public EpisodeAdapter(Context context, FavoriteHandler favoriteHandler) {
         inflater = LayoutInflater.from(context);
@@ -61,6 +69,18 @@ public final class EpisodeAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    /** Offline markers are driven by actual successful DownloadManager records. */
+    public void setOfflineState(Set<String> completedIds, String downloadingId) {
+        Set<String> next = completedIds == null
+                ? new HashSet<>() : new HashSet<>(completedIds);
+        String current = downloadingId == null ? "" : downloadingId;
+        if (offlineEpisodeIds.equals(next) && downloadingEpisodeId.equals(current)) return;
+        offlineEpisodeIds.clear();
+        offlineEpisodeIds.addAll(next);
+        downloadingEpisodeId = current;
+        notifyDataSetChanged();
+    }
+
     public Episode getEpisode(int position) { return items.get(position); }
     @Override public int getCount() { return items.size(); }
     @Override public Object getItem(int position) { return items.get(position); }
@@ -76,6 +96,8 @@ public final class EpisodeAdapter extends BaseAdapter {
             h.title = convertView.findViewById(R.id.rowTitle);
             h.meta = convertView.findViewById(R.id.rowMeta);
             h.favorite = convertView.findViewById(R.id.rowFavorite);
+            h.offline = convertView.findViewById(R.id.rowOfflineIndicator);
+            h.info = convertView.findViewById(R.id.rowInfo);
             h.progressContainer = convertView.findViewById(R.id.rowProgressContainer);
             h.progress = convertView.findViewById(R.id.rowProgress);
             h.progressLabel = convertView.findViewById(R.id.rowProgressLabel);
@@ -133,6 +155,22 @@ public final class EpisodeAdapter extends BaseAdapter {
             }
         });
 
+        boolean completed = e.id != null && offlineEpisodeIds.contains(e.id);
+        boolean downloading = !completed && e.id != null
+                && e.id.equals(downloadingEpisodeId);
+        h.offline.setVisibility(completed || downloading ? View.VISIBLE : View.GONE);
+        if (completed) {
+            h.offline.setImageResource(R.drawable.ic_offline_ready_art);
+            h.offline.setContentDescription("Disponibile offline");
+        } else if (downloading) {
+            h.offline.setImageResource(R.drawable.ic_downloading_art);
+            h.offline.setContentDescription("Download in corso");
+        }
+        h.info.setContentDescription("Dettagli: " + e.title);
+        h.info.setOnClickListener(v -> {
+            if (favoriteHandler != null) favoriteHandler.showDetails(e);
+        });
+
         return convertView;
     }
 
@@ -141,6 +179,8 @@ public final class EpisodeAdapter extends BaseAdapter {
         TextView title;
         TextView meta;
         TextView favorite;
+        ImageView offline;
+        ImageButton info;
         LinearLayout progressContainer;
         ProgressBar progress;
         TextView progressLabel;
