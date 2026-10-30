@@ -65,6 +65,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private static final int MENU_SLEEP = 1003;
     private static final int MENU_HISTORY = 1004;
     private static final int MENU_UPDATE = 1005;
+    private static final int MENU_SORT = 1006;
 
     // Cartella pubblica utilizzata dal DownloadManager per le puntate.
     private static final String EPISODE_DOWNLOAD_FOLDER = "Successo - Storie e voci dal Novecento";
@@ -130,6 +131,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private boolean favoritesOnly;
     private boolean unlistenedOnly;
     private boolean shuffleEnabled;
+    private int sortMode = EpisodeSort.NEWEST;
     private String searchQuery = "";
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private final Runnable filterSearchTask = () -> {
@@ -279,6 +281,7 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             prefs.edit().remove("listened_only").apply();
         }
         shuffleEnabled = prefs.getBoolean("shuffle_enabled", false);
+        sortMode = EpisodeSort.validMode(prefs.getInt("catalog_sort_mode", EpisodeSort.NEWEST));
         searchQuery = prefs.getString("ui_search_query", "");
         if (searchQuery == null) searchQuery = "";
         if (searchQuery.length() > 100) searchQuery = searchQuery.substring(0, 100);
@@ -948,6 +951,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             @Override public void toggleFavorite(Episode episode) {
                 MainActivity.this.toggleFavorite(episode);
             }
+
+            @Override public void showDetails(Episode episode) {
+                MainActivity.this.showEpisodeDetails(episode);
+            }
         });
         episodeList.setAdapter(adapter);
 
@@ -1229,6 +1236,13 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             visibleEpisodes.add(e);
         }
 
+        EpisodeSort.sort(visibleEpisodes, sortMode, episode -> {
+            if (episode == null || episode.id == null) return 0;
+            if (isListened(episode)) return 100;
+            long position = Math.max(0L, prefs.getLong(
+                    "episode_resume_ms_" + episode.id, 0L));
+            return EpisodeProgress.percent(position, episode.durationMs);
+        });
         adapter.setItems(visibleEpisodes);
 
         int favoriteCount = 0;
@@ -1361,6 +1375,61 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                     getResources().getColor(R.color.textPrimary, getTheme())
             );
         }
+    }
+
+    /** Sorting changes only the catalog view; active playback and the queue remain intact. */
+    private void showCatalogSortOptions() {
+        new AlertDialog.Builder(this)
+                .setTitle("Ordina catalogo")
+                .setSingleChoiceItems(EpisodeSort.LABELS, sortMode, (dialog, which) -> {
+                    sortMode = EpisodeSort.validMode(which);
+                    prefs.edit().putInt("catalog_sort_mode", sortMode).apply();
+                    dialog.dismiss();
+                    if (catalogLoaded) {
+                        applyFilter();
+                        episodeList.setSelection(0);
+                    }
+                })
+                .setNegativeButton("Annulla", null)
+                .show();
+    }
+
+    /** Description and actions are in an on-demand panel, never an extra catalog row. */
+    private void showEpisodeDetails(Episode episode) {
+        if (episode == null || destroyed || isFinishing()) return;
+        int padding = (int) (18f * getResources().getDisplayMetrics().density + 0.5f);
+        TextView details = new TextView(this);
+        details.setTextColor(getResources().getColor(R.color.textPrimary, getTheme()));
+        details.setTextSize(15f);
+        details.setPadding(padding, padding, padding, padding);
+        details.setTextIsSelectable(true);
+        String date = episode.dateDisplay == null ? "" : episode.dateDisplay;
+        String duration = episode.durationMs > 0L
+                ? formatTime(episode.durationMs) : "Non indicata";
+        String number = episode.episodeNumber > 0
+                ? "Puntata n. " + episode.episodeNumber + "\n" : "";
+        long position = episode.id == null ? 0L : Math.max(0L,
+                prefs.getLong("episode_resume_ms_" + episode.id, 0L));
+        String progress = isListened(episode) ? "Ascoltata"
+                : (position > 0L ? formatTime(position) + " · "
+                + EpisodeProgress.percent(position, episode.durationMs) + "%" : "Da ascoltare");
+        String description = episode.description == null
+                || episode.description.trim().isEmpty()
+                ? "Descrizione non disponibile." : episode.description.trim();
+        details.setText(number + "Data: " + date + "\nDurata: " + duration
+                + "\nAvanzamento: " + progress
+                + (episode.id != null && offlineEpisodeIds.contains(episode.id)
+                ? "\n✓ Disponibile offline" : "")
+                + "\n\n" + description);
+        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        scroll.addView(details);
+        new AlertDialog.Builder(this)
+                .setTitle(episode.title)
+                .setView(scroll)
+                .setPositiveButton("Ascolta", (dialog, which) -> playEpisodeFromAutoMode(episode))
+                .setNeutralButton("Scarica", (dialog, which) -> startDownload(episode))
+                .setNegativeButton("Chiudi", null)
+                .show();
     }
 
     private void showPlaybackHistory() {
@@ -1499,6 +1568,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         }
         menu.getMenu().add(1, MENU_SEARCH, 0, searchLabel);
         menu.getMenu().add(1, MENU_HISTORY, 1, "◷ Cronologia d'ascolto");
+        menu.getMenu().add(1, MENU_SORT, 2,
+                "⇅ Ordina: " + EpisodeSort.label(sortMode));
 
         int queued = bound && service != null ? service.getUpNextIds().size() : 0;
         menu.getMenu().add(2, MENU_QUEUE, 2,
@@ -1529,6 +1600,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
                     return true;
                 case MENU_HISTORY:
                     showPlaybackHistory();
+                    return true;
+                case MENU_SORT:
+                    showCatalogSortOptions();
                     return true;
                 case MENU_UPDATE:
                     UpdateChecker.check(this, prefs, true);
