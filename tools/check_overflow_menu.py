@@ -30,12 +30,13 @@ assert "menu.show();" in main
 menu_body=main.split("private void showMoreMenu() {",1)[1].split("private void refreshMoreMenuState()",1)[0]
 expected=[
     ("MENU_SEARCH","toggleSearchPanel();"),
+    ("MENU_SORT","showCatalogSortOptions();"),
     ("MENU_QUEUE","showUpNextQueue();"),
     ("MENU_SLEEP","showSleepTimerOptions();"),
     ("MENU_HISTORY","showPlaybackHistory();"),
     ("MENU_UPDATE","UpdateChecker.check(this, prefs, true);"),
 ]
-assert menu_body.count("menu.getMenu().add(") == 5
+assert menu_body.count("menu.getMenu().add(") == 6
 assert "menu.getMenu().setGroupDividerEnabled(true);" in menu_body
 assert "Build.VERSION.SDK_INT >= 28" in menu_body
 for i,(key,target) in enumerate(expected):
@@ -57,4 +58,4 @@ assert "UpdateChecker.check(this, prefs, false);" in main
 assert "private void refreshMoreMenuState()" in main
 assert "moreMenuButton.setContentDescription(description);" in main
 assert '@+id/searchPanel' in ids and '@+id/clearSearchButton' in ids
-print("OK: one top-right overflow menu, five actions, compact layout and preserved functionality.")
+print("OK: one top-right overflow menu, six actions including sorting, preserved functionality.")

@@ -14,7 +14,8 @@ assert main_ids["@+id/episodeList"].attrib[ns+"layout_weight"] == "1"
 assert main_ids["@+id/episodeList"].attrib[ns+"dividerHeight"] == "6dp"
 assert main_ids["@+id/miniPlayer"] is list(layout)[-1]
 assert main_ids["@+id/miniPlayer"].attrib[ns+"background"] == "@drawable/mini_player_bg"
-assert main_ids["@+id/miniPlayButton"].attrib["style"] == "@style/MiniPlayButton"
+assert main_ids["@+id/miniPlayButton"].tag == "ImageButton"
+assert main_ids["@+id/miniPlayButton"].attrib[ns+"background"] == "@drawable/mini_play_bg"
 assert main_ids["@+id/miniExpandButton"].attrib[ns+"layout_width"] == "44dp"
 assert main_ids["@+id/miniArtwork"].attrib[ns+"layout_width"] == "30dp"
 assert "@+id/speedSpinner" not in main_ids
@@ -41,8 +42,8 @@ gradle = (root / "app/build.gradle").read_text(encoding="utf-8")
 import re
 version_code = re.search(r"versionCode\s+(\d+)", gradle)
 assert version_code is not None and int(version_code.group(1)) >= 51000
-assert "versionName '5.2'" in gradle
+assert "versionName '5.3'" in gradle
 workflow = (root / ".github/workflows/build-apk.yml").read_text(encoding="utf-8")
-assert "code = 52000 + int(os.environ['GITHUB_RUN_NUMBER'])" in workflow
+assert "code = 53000 + int(os.environ['GITHUB_RUN_NUMBER'])" in workflow
 assert "Pubblica automaticamente su GitHub Releases" in workflow
 print("OK: modern episode cards, night/day theme, persistent mini-player and OTA version.")

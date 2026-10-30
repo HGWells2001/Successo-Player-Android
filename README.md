@@ -4,6 +4,21 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
+**v5.3 – Sei miglioramenti per l'ascolto quotidiano**
+
+## Novità della v5.3
+
+- **Mini-player navigabile:** SeekBar trascinabile per cercare una posizione, anteprima temporale durante il movimento, senza modificare Play/Pausa. Un feedback animato di 170 ms conferma il cambio di stato.
+- **Download più chiari:** pulsante con icone di download, download in corso, completato e errore; indicatore nelle righe basato sulle registrazioni realmente completate di DownloadManager, ricaricato all'apertura e dopo cancellazioni. Protezione dai doppi download.
+- **Dettagli puntata:** icona dedicata in ogni scheda, descrizione leggibile e selezionabile, durata, data, numero, avanzamento e pulsanti Ascolta/Scarica.
+- **Ordinamento del catalogo:** più recenti, meno recenti, durata maggiore o più avanzate. Impostazione memorizzata, accessibile dal menu ⋮ senza modificare la coda audio.
+- **Iconografia coordinata:** nuovi controlli vettoriali per Precedente, −30, Play/Pausa, +30, Successiva, volume ed espansione mini-player.
+- **Schermi più piccoli:** pulsanti da almeno 44–48dp, titoli e contatori troncati in sicurezza, filtri abbreviati quando necessario, layout compatto in orizzontale e per caratteri ingranditi.
+- **Non introdotta** la nuova scheda «Riprendi ascolto» richiesta di escludere; restano invariati i normali segnalibri di ascolto.
+- **Versione aggiornabile:** build 5.3 con versionCode base 53000, chiave di firma permanente e rilevamento tramite GitHub Releases.
+
+## Novità della v5.2
+
 **v5.2 – Icone vettoriali personalizzate per i comandi**
 
 ## Novità della v5.2

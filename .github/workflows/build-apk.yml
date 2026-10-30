@@ -111,8 +111,8 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # La base v5.2 supera ogni APK delle versioni precedenti.
-          code = 52000 + int(os.environ['GITHUB_RUN_NUMBER'])
+          # La base v5.3 supera ogni APK delle versioni precedenti.
+          code = 53000 + int(os.environ['GITHUB_RUN_NUMBER'])
           assert code > 42500 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
@@ -211,7 +211,7 @@ jobs:
         shell: bash
         run: python3 tools/check_playback_history.py
 
-      - name: Verifica menu a tendina con cinque funzioni
+      - name: Verifica menu a tendina con sei funzioni
         shell: bash
         run: python3 tools/check_overflow_menu.py
 
@@ -226,6 +226,14 @@ jobs:
       - name: Verifica icone vettoriali e comandi
         shell: bash
         run: python3 tools/check_custom_control_icons.py
+
+      - name: Test ordinamento per data durata e avanzamento
+        shell: bash
+        run: python3 tools/check_episode_sort.py
+
+      - name: Test sei migliorie UI v5.3
+        shell: bash
+        run: python3 tools/check_v53_ui_features.py
 
       - name: Compila release (non firmata)
         shell: bash
@@ -291,6 +299,7 @@ jobs:
 
           APK Android firmato con la chiave permanente del progetto.
 
+          - v5.3: mini-player trascinabile, stato download/offline, dettagli puntata, ordinamento, icone coordinate e layout adattivo.
           - v5.2: icone vettoriali personalizzate di Download, Libreria e Shuffle con stato attivo.
           - v5.1: palette giorno/notte rinnovata, catalogo a schede e mini-player più leggibile.
           - Eliminata la tendina della velocità; riproduzione a 1×.

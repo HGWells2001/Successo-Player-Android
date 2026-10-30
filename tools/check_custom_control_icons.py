@@ -32,5 +32,5 @@ assert "shuffleButton.setActivated(shuffleEnabled);" in source
 assert "shuffleButton.setImageTintList(ColorStateList.valueOf(" in source
 assert "shuffleButton.setText(" not in source
 gradle = (root / "app/build.gradle").read_text(encoding="utf-8")
-assert "versionName '5.2'" in gradle
+assert "versionName '5.3'" in gradle
 print("OK: custom vector action icons, accessible sizing, active Shuffle and update version.")

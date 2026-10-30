@@ -40,7 +40,8 @@ assert 'playerExpanded = prefs.getBoolean("ui_player_expanded", false);' in main
 assert '.putBoolean("ui_player_expanded", expanded)' in main
 assert "private void updateMiniProgress(long positionMs, long durationMs)" in main
 assert "updateMiniProgress(positionMs, knownDurationMs);" in main
-assert "miniPlayButton.setText(playing ? " in main
+assert "miniPlayButton.setImageResource(playing" in main
+assert ids["@+id/miniProgress"].tag == "SeekBar"
 assert "adapter.setCurrentPlayback(selectedEpisode.id, miniPositionMs, miniDurationMs)" in main
 
 for id in ["rowProgressContainer","rowProgress","rowProgressLabel"]:
