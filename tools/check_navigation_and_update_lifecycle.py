@@ -24,11 +24,12 @@ assert "!((MainActivity) activity).canShowUpdatePrompt()" in ui
 assert "task.run();" in ui
 assert "refreshMoreMenuState();\n            refreshMoreMenuState();" not in main
 menu = main.split("private void showMoreMenu()", 1)[1].split("private void refreshMoreMenuState()", 1)[0]
-assert menu.count("menu.getMenu().add(") == 5
+assert menu.count("menu.getMenu().add(") == 6
+assert "case MENU_SORT:" in menu and "showCatalogSortOptions();" in menu
 assert "setGroupDividerEnabled(true)" in menu
 assert '@+id/moreMenuButton' in layout
 for removed in ("@+id/searchButton", "@+id/updateButton", "@+id/queueButton", "@+id/sleepTimerButton", "@+id/historyButton"):
     assert removed not in layout
 assert 'UpdateChecker.check(this, prefs, false);' in main
 assert 'UpdateChecker.check(this, prefs, true);' in main
-print("OK: Back closes search first, update prompts foreground-only, five menu actions.")
+print("OK: Back closes search first, update prompts foreground-only, six menu actions including sorting.")
