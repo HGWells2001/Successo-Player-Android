@@ -1443,7 +1443,16 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         new AlertDialog.Builder(this)
                 .setTitle(episode.title)
                 .setView(scroll)
-                .setPositiveButton("Ascolta", (dialog, which) -> playEpisodeFromAutoMode(episode))
+                .setPositiveButton("Ascolta", (dialog, which) -> {
+                    Episode current = bound && service != null
+                            ? service.getCurrentEpisode() : null;
+                    if (current != null && service.isPlaying()
+                            && episode.id != null && episode.id.equals(current.id)) {
+                        toast("Puntata già in ascolto");
+                    } else {
+                        playEpisodeFromAutoMode(episode);
+                    }
+                })
                 .setNeutralButton("Scarica", (dialog, which) -> startDownload(episode))
                 .setNegativeButton("Chiudi", null)
                 .show();
@@ -1908,7 +1917,8 @@ public final class MainActivity extends Activity implements AudioPlaybackService
 
     private void refreshDownloadButtonState() {
         if (downloadButton == null) return;
-        String id = selectedEpisode == null ? "" : selectedEpisode.id;
+        String id = selectedEpisode == null || selectedEpisode.id == null
+                ? "" : selectedEpisode.id;
         boolean ready = !id.isEmpty() && offlineEpisodeIds.contains(id);
         boolean active = activeDownloadId >= 0L || preparingDownload;
         boolean downloading = active && id.equals(downloadingEpisodeId);
