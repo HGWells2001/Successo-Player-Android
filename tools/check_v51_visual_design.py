@@ -42,8 +42,8 @@ gradle = (root / "app/build.gradle").read_text(encoding="utf-8")
 import re
 version_code = re.search(r"versionCode\s+(\d+)", gradle)
 assert version_code is not None and int(version_code.group(1)) >= 51000
-assert "versionName '5.3.1'" in gradle
+assert "versionName '5.3.2'" in gradle
 workflow = (root / ".github/workflows/build-apk.yml").read_text(encoding="utf-8")
-assert "code = 53100 + int(os.environ['GITHUB_RUN_NUMBER'])" in workflow
+assert "code = 53200 + int(os.environ['GITHUB_RUN_NUMBER'])" in workflow
 assert "Pubblica automaticamente su GitHub Releases" in workflow
 print("OK: modern episode cards, night/day theme, persistent mini-player and OTA version.")

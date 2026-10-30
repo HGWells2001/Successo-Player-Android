@@ -117,6 +117,9 @@ public final class MainActivity extends Activity implements AudioPlaybackService
     private EpisodeAdapter adapter;
     private Episode selectedEpisode;
     private int selectedVisibleIndex = -1;
+    // A deliberate tap must not jump the list, even when Shuffle is enabled.
+    private String recentTapEpisodeId = "";
+    private long recentTapExpiresAtMs;
 
     private AudioPlaybackService service;
     private boolean bound;
@@ -1007,6 +1010,10 @@ public final class MainActivity extends Activity implements AudioPlaybackService
         episodeList.setOnItemClickListener((parent, view, position, id) -> {
             selectedVisibleIndex = position;
             selectedEpisode = adapter.getEpisode(position);
+            // The service notifies onEpisode asynchronously. Mark this
+            // intentional tap so its callback does not reposition the catalog.
+            recentTapEpisodeId = selectedEpisode.id == null ? "" : selectedEpisode.id;
+            recentTapExpiresAtMs = android.os.SystemClock.elapsedRealtime() + 10_000L;
             pendingRestoreEpisodeId = selectedEpisode.id;
             // Important: a new episode always owns a fresh timeline. The old
             // episode position must never leak into the new selection.
@@ -2373,17 +2380,15 @@ public final class MainActivity extends Activity implements AudioPlaybackService
             selectedVisibleIndex = indexOfVisible(episode);
             updateSelectedUi(false);
             refreshMoreMenuState();
-            // Include la coda esplicita e le transizioni da cuffie/lockscreen.
-            if (shuffleEnabled) scrollToShuffleSelection();
-            else if (selectedVisibleIndex >= 0) {
-                final String expectedId = episode.id;
-                episodeList.post(() -> {
-                    if (!destroyed && activityStarted && selectedEpisode != null
-                            && expectedId != null && expectedId.equals(selectedEpisode.id)) {
-                        int visible = indexOfVisible(selectedEpisode);
-                        if (visible >= 0) episodeList.setSelectionFromTop(visible, 0);
-                    }
-                });
+            // On a user tap keep the exact current scroll position. Only
+            // automatic Shuffle selections should reveal the played episode.
+            boolean originatedFromTap = episode.id != null
+                    && episode.id.equals(recentTapEpisodeId)
+                    && android.os.SystemClock.elapsedRealtime() <= recentTapExpiresAtMs;
+            recentTapEpisodeId = "";
+            recentTapExpiresAtMs = 0L;
+            if (shuffleEnabled && !originatedFromTap) {
+                scrollToShuffleSelection();
             }
         });
     }

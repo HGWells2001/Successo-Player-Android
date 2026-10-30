@@ -4,6 +4,17 @@ Player Android non ufficiale dedicato a **“Successo. Storie e voci dal Novecen
 
 ## Versione corrente
 
+**v5.3.2 – Catalogo fermo quando selezioni una puntata**
+
+## Novità della v5.3.2
+
+- Toccare una puntata la seleziona e avvia senza spostarla in cima all'elenco: la posizione di scorrimento rimane invariata.
+- Conservata l'evidenziazione della scheda selezionata e i pulsanti Dettagli/Preferiti.
+- Shuffle mantiene lo scorrimento automatico per le selezioni automatiche, ma non quando si tocca manualmente una puntata.
+- Nessuna modifica alla riproduzione audio, alla libreria offline o ai dati salvati.
+
+## Novità della v5.3.1
+
 **v5.3.1 – Correzione selezione delle puntate**
 
 ## Novità della v5.3.1

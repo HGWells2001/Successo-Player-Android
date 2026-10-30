@@ -33,5 +33,5 @@ assert 'episodeList.setOnItemLongClickListener((parent, view, position, id) -> {
 assert 'service.enqueueUpNext(chosen, which == 1)' in activity
 
 gradle = (root/"app/build.gradle").read_text(encoding="utf-8")
-assert "versionName '5.3.1'" in gradle
+assert "versionName '5.3.2'" in gradle
 print("OK: row clicks select episodes, Info/Favorites isolated, long press preserves queue.")

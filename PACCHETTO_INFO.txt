@@ -68,3 +68,5 @@ Successo Player Android v3.9 - 2253 proverbi del giorno e player schermata di bl
 - v5.3: SeekBar nel mini-player, pulsante download e badge offline contestuali, dettagli puntata, ordinamento catalogo in ⋮, controlli vettoriali completi, layout adattivo; esclusa la nuova scheda Riprendi ascolto.
 
 - v5.3.1: corretto il blocco dei tocchi sulle puntate introdotto dai nuovi pulsanti Info/Preferiti; ripristinato anche il tocco prolungato per la coda.
+
+- v5.3.2: la selezione manuale delle puntate non sposta più l'elenco; scorrimento automatico mantenuto solo per le selezioni automatiche Shuffle.

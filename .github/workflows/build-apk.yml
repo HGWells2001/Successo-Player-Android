@@ -111,8 +111,8 @@ jobs:
           path = Path('app/build.gradle')
           gradle = path.read_text(encoding='utf-8')
           # Il contatore GitHub e' persistente tra esecuzioni della stessa workflow.
-          # La base v5.3.1 supera ogni APK precedente, inclusa v5.3.
-          code = 53100 + int(os.environ['GITHUB_RUN_NUMBER'])
+          # La base v5.3.2 supera ogni APK precedente, inclusa v5.3.1.
+          code = 53200 + int(os.environ['GITHUB_RUN_NUMBER'])
           assert code > 42500 and code < 2100000000
           gradle, changed = re.subn(r'versionCode\s+\d+', f'versionCode {code}', gradle, count=1)
           assert changed == 1
@@ -239,6 +239,10 @@ jobs:
         shell: bash
         run: python3 tools/check_episode_row_selection.py
 
+      - name: Verifica nessuno scorrimento sulle puntate toccate
+        shell: bash
+        run: python3 tools/check_manual_episode_no_autoscroll.py
+
       - name: Compila release (non firmata)
         shell: bash
         run: gradle --no-daemon --stacktrace :app:assembleRelease
@@ -303,6 +307,7 @@ jobs:
 
           APK Android firmato con la chiave permanente del progetto.
 
+          - v5.3.2: niente scorrimento dell'elenco quando si tocca una puntata; Shuffle automatico preservato.
           - v5.3.1: corretto il tocco sulle schede episodio e il tocco prolungato per la coda.
           - v5.3: mini-player trascinabile, stato download/offline, dettagli puntata, ordinamento, icone coordinate e layout adattivo.
           - v5.2: icone vettoriali personalizzate di Download, Libreria e Shuffle con stato attivo.
